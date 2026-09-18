@@ -2,7 +2,7 @@ import { useState } from "react";
 import AuthShell from "../components/AuthShell.jsx";
 import "./auth.css";
 
-export default function SignUpPage({ onBackToSignIn }) {
+export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +14,18 @@ export default function SignUpPage({ onBackToSignIn }) {
       setMessage("Please fill in name, email, and password.");
       return;
     }
-    setMessage(`Account created for ${name}. You can now sign in.`);
+    setMessage(`Account created for ${name}. Opening EchoCode.`);
+    onSignedIn({
+      email: email.trim(),
+      name: name.trim(),
+      initials: name
+        .trim()
+        .split(/\s+/)
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase(),
+    });
   }
 
   return (

@@ -3,7 +3,7 @@ import AuthShell from "../components/AuthShell.jsx";
 import MicIcon from "../components/MicIcon.jsx";
 import "./auth.css";
 
-export default function SignInPage({ onCreateAccount }) {
+export default function SignInPage({ onCreateAccount, onSignedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [voiceStatus, setVoiceStatus] = useState("idle");
@@ -32,6 +32,10 @@ export default function SignInPage({ onCreateAccount }) {
       return;
     }
     announce(`Signing in as ${email}.`);
+    onSignedIn({
+      email: email.trim(),
+      initials: initialsFromEmail(email),
+    });
   }
 
   function handleVoiceSignIn() {
@@ -147,6 +151,15 @@ export default function SignInPage({ onCreateAccount }) {
       </p>
     </AuthShell>
   );
+}
+
+function initialsFromEmail(email) {
+  const local = email.split("@")[0] || "fa";
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return local.slice(0, 2).toUpperCase();
 }
 
 function describeChar(char) {
