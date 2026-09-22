@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AuthShell from "../components/AuthShell.jsx";
+import api, { setToken } from "../api/client.js";
 import "./auth.css";
 
 export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
@@ -7,25 +8,35 @@ export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event) {
+  function announce(text) {
+    setMessage(text);
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault();
     if (!name.trim() || !email.trim() || !password) {
-      setMessage("Please fill in name, email, and password.");
+      announce("Please fill in name, email, and password.");
       return;
     }
-    setMessage(`Account created for ${name}. Opening EchoCode.`);
-    onSignedIn({
-      email: email.trim(),
-      name: name.trim(),
-      initials: name
-        .trim()
-        .split(/\s+/)
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase(),
-    });
+    setSubmitting(true);
+    announce("Creating your account\u2026");
+
+    try {
+      const data = await api.post("/auth/signup", {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
+      setToken(data.access_token);
+      announce(`Account created for ${data.user.name}. Opening EchoCode.`);
+      onSignedIn(data.user);
+    } catch (err) {
+      announce(err.message || "Sign-up failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -73,8 +84,8 @@ export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
           onChange={(event) => setPassword(event.target.value)}
         />
 
-        <button type="submit" className="submit-btn">
-          Create account
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? "Creating account\u2026" : "Create account"}
         </button>
       </form>
 

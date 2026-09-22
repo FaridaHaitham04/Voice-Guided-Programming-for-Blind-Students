@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AuthShell from "../components/AuthShell.jsx";
 import MicIcon from "../components/MicIcon.jsx";
+import api, { setToken } from "../api/client.js";
 import "./auth.css";
 
 export default function SignInPage({ onCreateAccount, onSignedIn }) {
@@ -8,6 +9,8 @@ export default function SignInPage({ onCreateAccount, onSignedIn }) {
   const [password, setPassword] = useState("");
   const [voiceStatus, setVoiceStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   function announce(text) {
     setMessage(text);
   }
@@ -25,17 +28,28 @@ export default function SignInPage({ onCreateAccount, onSignedIn }) {
     announce(`Character ${next.length}: ${describeChar(lastChar)}.`);
   }
 
-  function handleEmailSubmit(event) {
+  async function handleEmailSubmit(event) {
     event.preventDefault();
     if (!email.trim() || !password) {
       announce("Please enter both email and password.");
       return;
     }
-    announce(`Signing in as ${email}.`);
-    onSignedIn({
-      email: email.trim(),
-      initials: initialsFromEmail(email),
-    });
+    setSubmitting(true);
+    announce("Signing in\u2026");
+
+    try {
+      const data = await api.post("/auth/login", {
+        email: email.trim(),
+        password,
+      });
+      setToken(data.access_token);
+      announce(`Signed in as ${data.user.email}.`);
+      onSignedIn(data.user);
+    } catch (err) {
+      announce(err.message || "Sign-in failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleVoiceSignIn() {
@@ -138,8 +152,8 @@ export default function SignInPage({ onCreateAccount, onSignedIn }) {
           Your screen reader will announce each character as you type.
         </p>
 
-        <button type="submit" className="submit-btn">
-          Sign in
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? "Signing in\u2026" : "Sign in"}
         </button>
       </form>
 

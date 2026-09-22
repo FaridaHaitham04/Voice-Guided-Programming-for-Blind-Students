@@ -2,6 +2,7 @@ import { useState } from "react";
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
+import { clearToken } from "./api/client.js";
 
 export default function App() {
   const [view, setView] = useState("signin");
@@ -13,6 +14,7 @@ export default function App() {
   }
 
   function signOut() {
+    clearToken();
     setUser(null);
     setView("signin");
   }
