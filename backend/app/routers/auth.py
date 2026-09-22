@@ -81,12 +81,3 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         ),
     )
 
-
-@router.get("/me", response_model=UserOut)
-def me(current_user: User = Depends(get_current_user)):
-    """Return the currently authenticated user."""
-    return UserOut(
-        email=current_user.email,
-        name=current_user.name,
-        initials=initials_from_name(current_user.name),
-    )
