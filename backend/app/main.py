@@ -33,8 +33,12 @@ app.add_middleware(
 
 # ── Routers ────────────────────────────────────────────────────────────
 from app.routers.auth import router as auth_router  # noqa: E402
+from app.routers.files import router as files_router  # noqa: E402
+from app.routers.run import router as run_router  # noqa: E402
 
 app.include_router(auth_router)
+app.include_router(files_router)
+app.include_router(run_router)
 
 
 @app.get("/health")
