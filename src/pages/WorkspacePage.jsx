@@ -85,10 +85,10 @@ export default function WorkspacePage({ user, onSignOut }) {
   const lines = useMemo(() => highlightPython(code.replace(/\n$/, "") || " "), [code]);
 
   useEffect(() => {
-    document.title = "EchoCode — Workspace";
+    document.title = "BlindCode — Workspace";
     setAnnounce(`Signed in as ${user.email}. Lesson 2, for loops is open.`);
     return () => {
-      document.title = "EchoCode — Sign in";
+      document.title = "BlindCode — Sign in";
     };
   }, [user.email]);
 
@@ -172,7 +172,7 @@ export default function WorkspacePage({ user, onSignOut }) {
           <span className="app-mic" aria-hidden="true">
             <MicIcon />
           </span>
-          <span className="app-name">EchoCode</span>
+          <span className="app-name">BlindCode</span>
           <span className={`listen-pill${listening ? " is-on" : ""}`}>
             <span className="listen-dot" aria-hidden="true" />
             Listening

@@ -14,7 +14,7 @@ export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
       setMessage("Please fill in name, email, and password.");
       return;
     }
-    setMessage(`Account created for ${name}. Opening EchoCode.`);
+    setMessage(`Account created for ${name}. Opening BlindCode.`);
     onSignedIn({
       email: email.trim(),
       name: name.trim(),
@@ -32,7 +32,7 @@ export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
     <AuthShell>
       <h1 id="page-heading" className="auth-title">Create an account</h1>
       <p className="auth-subtitle">
-        Set up EchoCode with your name, email, and a passphrase.
+        Set up BlindCode with your name, email, and a passphrase.
       </p>
 
       <div className="sr-only" aria-live="polite" aria-atomic="true">
