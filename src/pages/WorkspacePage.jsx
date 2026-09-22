@@ -1,119 +1,157 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import MicIcon from "../components/MicIcon.jsx";
 import { highlightPython } from "../utils/highlightPython.js";
-import { runSimplePython } from "../utils/runPython.js";
+import api from "../api/client.js";
 import "./workspace.css";
 
-const FILES = {
-  "lesson1.py": `# Store a name, then print it
-name = "Ada"
-print(name)
-`,
-  "lesson2.py": `# Print each number from 1 to 5
-for number in range(1, 6):
-    print(number)
-`,
-  "lesson3.py": `# Count down with a while loop
-count = 3
-while count > 0:
-    print(count)
-    count = count - 1
-`,
-  "trial.py": `# Practice in this file
-print("hello")
-`,
-  "test.py": `# Quick test
-print(1 + 1)
-`,
-};
-
-const LESSONS = [
-  {
-    id: "lesson-1",
-    title: "Lesson 1 · Variables",
-    file: "lesson1.py",
-    assessments: [
-      { name: "Assessment 1", score: "9/10" },
-      { name: "Assessment 2", score: "10/10" },
-    ],
-  },
-  {
-    id: "lesson-2",
-    title: "Lesson 2 · For loops",
-    file: "lesson2.py",
-    assessments: [
-      { name: "Assessment 1", score: "8/10" },
-      { name: "Assessment 2", score: null },
-    ],
-  },
-  {
-    id: "lesson-3",
-    title: "Lesson 3 · While loops",
-    file: "lesson3.py",
-    assessments: [
-      { name: "Assessment 1", score: null },
-      { name: "Assessment 2", score: null },
-    ],
-  },
-];
-
-const INITIAL_CHAT = [
-  {
-    from: "ai",
-    text: "Line 3 prints each value of number as the loop runs. Want me to read the output aloud?",
-    audio: true,
-  },
-  { from: "you", text: "Yes, read it out." },
-  {
-    from: "ai",
-    text: "Output: one, two, three, four, five — five lines total, counted correctly.",
-  },
-];
-
 export default function WorkspacePage({ user, onSignOut }) {
-  const [files, setFiles] = useState(FILES);
-  const [activeFile, setActiveFile] = useState("lesson2.py");
-  const [openFiles, setOpenFiles] = useState(["lesson2.py", "trial.py"]);
-  const [activeLesson, setActiveLesson] = useState("lesson-2");
-  const [cursorLine, setCursorLine] = useState(3);
-  const [output, setOutput] = useState(["1", "2", "3", "4", "5"]);
-  const [chat, setChat] = useState(INITIAL_CHAT);
+  const [files, setFiles] = useState({});
+  const [activeFile, setActiveFile] = useState("");
+  const [openFiles, setOpenFiles] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [activeLesson, setActiveLesson] = useState("");
+  const [cursorLine, setCursorLine] = useState(1);
+  const [output, setOutput] = useState([]);
+  const [chat, setChat] = useState([]);
   const [listening, setListening] = useState(true);
-  const [announce, setAnnounce] = useState("Opened Lesson 2, for loops.");
+  const [announce, setAnnounce] = useState("Loading workspace\u2026");
+  const [loading, setLoading] = useState(true);
   const editorRef = useRef(null);
-  const code = files[activeFile];
-  const lines = useMemo(() => highlightPython(code.replace(/\n$/, "") || " "), [code]);
+  const saveTimerRef = useRef(null);
 
+  const code = files[activeFile] || "";
+  const lines = useMemo(
+    () => highlightPython(code.replace(/\n$/, "") || " "),
+    [code]
+  );
+
+  // ── Load data on mount ────────────────────────────────────────────
   useEffect(() => {
-    document.title = "EchoCode — Workspace";
-    setAnnounce(`Signed in as ${user.email}. Lesson 2, for loops is open.`);
+    document.title = "EchoCode \u2014 Workspace";
+
+    let cancelled = false;
+
+    async function loadWorkspace() {
+      try {
+        const [filesData, lessonsData, chatData] = await Promise.all([
+          api.get("/files"),
+          api.get("/lessons"),
+          api.get("/chat"),
+        ]);
+
+        if (cancelled) return;
+
+        // Build files map
+        const filesMap = {};
+        for (const f of filesData) {
+          filesMap[f.filename] = f.content;
+        }
+        setFiles(filesMap);
+
+        // Set lessons
+        setLessons(lessonsData);
+
+        // Set chat — map "from" field to match component expectations
+        const chatMessages = chatData.map((msg) => ({
+          from: msg.from || msg.sender,
+          text: msg.text,
+        }));
+        setChat(chatMessages);
+
+        // Open first lesson file by default
+        const firstLesson = lessonsData[1] || lessonsData[0];
+        if (firstLesson) {
+          setActiveFile(firstLesson.file);
+          setOpenFiles([firstLesson.file]);
+          setActiveLesson(firstLesson.id);
+
+          // Find the first print line
+          const fileContent = filesMap[firstLesson.file] || "";
+          const printLine =
+            fileContent
+              .split("\n")
+              .findIndex((line) => line.trim().startsWith("print(")) + 1;
+          setCursorLine(printLine || 1);
+        }
+
+        setLoading(false);
+        setAnnounce(
+          `Signed in as ${user.email}. ${
+            firstLesson ? `${firstLesson.title} is open.` : "Workspace loaded."
+          }`
+        );
+      } catch (err) {
+        if (!cancelled) {
+          setLoading(false);
+          setAnnounce("Failed to load workspace. Please try signing in again.");
+        }
+      }
+    }
+
+    loadWorkspace();
+
     return () => {
-      document.title = "EchoCode — Sign in";
+      cancelled = true;
+      document.title = "EchoCode \u2014 Sign in";
     };
   }, [user.email]);
 
+  // ── File operations ─────────────────────────────────────────────────
+
   function openFile(name, lessonId) {
     setActiveFile(name);
-    setOpenFiles((current) => (current.includes(name) ? current : [...current, name]));
+    setOpenFiles((current) =>
+      current.includes(name) ? current : [...current, name]
+    );
     if (lessonId) setActiveLesson(lessonId);
     const printLine =
-      files[name]
+      (files[name] || "")
         .split("\n")
         .findIndex((line) => line.trim().startsWith("print(")) + 1;
     setCursorLine(printLine || 1);
     setAnnounce(`${name} opened.`);
   }
 
+  // Debounced save to backend
+  const saveToBackend = useCallback(
+    (filename, content) => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+      saveTimerRef.current = setTimeout(async () => {
+        try {
+          await api.put(`/files/${encodeURIComponent(filename)}`, {
+            content,
+          });
+        } catch {
+          // Silent failure on autosave — the file is still in local state
+        }
+      }, 1000);
+    },
+    []
+  );
+
   function updateCode(next) {
     setFiles((current) => ({ ...current, [activeFile]: next }));
-    const line = next.slice(0, editorRef.current?.selectionStart || 0).split("\n").length;
+    const line =
+      next.slice(0, editorRef.current?.selectionStart || 0).split("\n").length;
     setCursorLine(line);
+
+    // Debounced save
+    saveToBackend(activeFile, next);
   }
 
-  function runCode() {
-    const result = runSimplePython(files[activeFile]);
-    setOutput(result.length ? result : ["(no output)"]);
-    setAnnounce(`Ran ${activeFile}. ${result.length} output lines.`);
+  async function runCode() {
+    setAnnounce("Running code\u2026");
+    try {
+      const data = await api.post("/run", { filename: activeFile });
+      const result = data.output || [];
+      setOutput(result.length ? result : ["(no output)"]);
+      setAnnounce(`Ran ${activeFile}. ${result.length} output lines.`);
+    } catch (err) {
+      setOutput([`Error: ${err.message}`]);
+      setAnnounce("Code execution failed.");
+    }
   }
 
   function speakOutput() {
@@ -130,24 +168,47 @@ export default function WorkspacePage({ user, onSignOut }) {
     }
   }
 
-  function askTutor(text) {
-    const lower = text.toLowerCase();
-    let reply = "I am here. Ask about this loop, the output, or the current line.";
-    if (lower.includes("read") || lower.includes("output") || lower.includes("aloud")) {
-      reply = `Output: ${output.map(wordFor).join(", ")} — ${output.length} lines total.`;
-      speakOutput();
-    } else if (lower.includes("line")) {
-      reply = `You are on line ${cursorLine}: ${code.split("\n")[cursorLine - 1] || "empty line"}.`;
+  async function askTutor(text) {
+    setChat((current) => [...current, { from: "you", text }]);
+    setAnnounce("Asking tutor\u2026");
+
+    try {
+      const data = await api.post("/chat", {
+        text,
+        filename: activeFile,
+        cursor_line: cursorLine,
+      });
+      const reply = data.reply;
+      setChat((current) => [...current, { from: "ai", text: reply }]);
+      setAnnounce(reply);
+
+      // If the question was about reading output, also speak it
+      const lower = text.toLowerCase();
+      if (
+        lower.includes("read") ||
+        lower.includes("output") ||
+        lower.includes("aloud")
+      ) {
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance(reply);
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+    } catch (err) {
+      const fallback =
+        "I'm having trouble connecting. Please try again in a moment.";
+      setChat((current) => [...current, { from: "ai", text: fallback }]);
+      setAnnounce(fallback);
     }
-    setChat((current) => [...current, { from: "you", text }, { from: "ai", text: reply }]);
-    setAnnounce(reply);
   }
 
   function listenToTutor() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setAnnounce("Voice questions are not supported in this browser. Type a question instead.");
+      setAnnounce(
+        "Voice questions are not supported in this browser. Type a question instead."
+      );
       return;
     }
     const recognition = new SpeechRecognition();
@@ -159,6 +220,30 @@ export default function WorkspacePage({ user, onSignOut }) {
     };
     recognition.onend = () => setListening(true);
     recognition.start();
+  }
+
+  // ── Loading state ─────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="workspace">
+        <div className="sr-only" aria-live="polite">
+          {announce}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            color: "#999",
+            fontSize: "1.2rem",
+          }}
+          role="status"
+        >
+          Loading workspace…
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -209,11 +294,13 @@ export default function WorkspacePage({ user, onSignOut }) {
           <p className="nav-label">Course</p>
           <p className="nav-course">Intro to Loops</p>
           <ul className="lesson-list">
-            {LESSONS.map((lesson) => (
+            {lessons.map((lesson) => (
               <li key={lesson.id}>
                 <button
                   type="button"
-                  className={`lesson-btn${activeLesson === lesson.id ? " is-active" : ""}`}
+                  className={`lesson-btn${
+                    activeLesson === lesson.id ? " is-active" : ""
+                  }`}
                   onClick={() => openFile(lesson.file, lesson.id)}
                 >
                   <span className="lesson-dot" aria-hidden="true" />
@@ -226,7 +313,9 @@ export default function WorkspacePage({ user, onSignOut }) {
                         <span className="tiny-dot" aria-hidden="true" />
                         {item.name}
                       </span>
-                      {item.score ? <span className="score">{item.score}</span> : null}
+                      {item.score ? (
+                        <span className="score">{item.score}</span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -236,14 +325,19 @@ export default function WorkspacePage({ user, onSignOut }) {
 
           <p className="nav-label practice-label">Practice</p>
           <ul className="practice-list">
-            {["trial.py", "test.py"].map((name) => (
-              <li key={name}>
-                <button type="button" onClick={() => openFile(name)}>
-                  <span className="tiny-dot" aria-hidden="true" />
-                  {name}
-                </button>
-              </li>
-            ))}
+            {Object.keys(files)
+              .filter(
+                (name) =>
+                  !lessons.some((l) => l.file === name)
+              )
+              .map((name) => (
+                <li key={name}>
+                  <button type="button" onClick={() => openFile(name)}>
+                    <span className="tiny-dot" aria-hidden="true" />
+                    {name}
+                  </button>
+                </li>
+              ))}
           </ul>
         </nav>
 
@@ -271,7 +365,9 @@ export default function WorkspacePage({ user, onSignOut }) {
               {lines.map((_, index) => (
                 <div
                   key={index}
-                  className={index + 1 === cursorLine ? "is-current" : undefined}
+                  className={
+                    index + 1 === cursorLine ? "is-current" : undefined
+                  }
                 >
                   {index + 1}
                 </div>
@@ -282,7 +378,9 @@ export default function WorkspacePage({ user, onSignOut }) {
                 {lines.map((tokens, index) => (
                   <div
                     key={index}
-                    className={`code-line${index + 1 === cursorLine ? " is-current" : ""}`}
+                    className={`code-line${
+                      index + 1 === cursorLine ? " is-current" : ""
+                    }`}
                   >
                     {tokens.map((token, tokenIndex) => (
                       <span key={tokenIndex} className={`tok-${token.type}`}>
@@ -327,14 +425,21 @@ export default function WorkspacePage({ user, onSignOut }) {
         <aside className="tutor" aria-label="AI Tutor">
           <header className="tutor-head">
             <h1>AI Tutor</h1>
-            <button type="button" className="icon-btn small" aria-label="Tutor options">
+            <button
+              type="button"
+              className="icon-btn small"
+              aria-label="Tutor options"
+            >
               ···
             </button>
           </header>
           <div className="chat">
             {chat.map((message, index) => (
               <div key={index} className={`bubble-row ${message.from}`}>
-                <span className={`who ${message.from}`} aria-hidden="true">
+                <span
+                  className={`who ${message.from}`}
+                  aria-hidden="true"
+                >
                   {message.from === "ai" ? "AI" : user.initials || "FA"}
                 </span>
                 <div className="bubble">
