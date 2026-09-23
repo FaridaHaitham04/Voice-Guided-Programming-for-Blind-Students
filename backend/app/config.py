@@ -5,18 +5,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # ── Database ───────────────────────────────────────────────────────
-    database_url: str = "mysql+pymysql://echocode:echocode@localhost:3306/echocode"
+    database_url: str = "mysql+pymysql://blindcode:blindcode@localhost:3307/blindcode"
 
     # ── JWT ────────────────────────────────────────────────────────────
-    jwt_secret: str = "change-me-to-a-random-string"
+    jwt_secret: str = "9Hmuaqb6yHm6HaDWHZgcC14Jxs6vhmQdWZlsHrfIwzG"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
     # ── SovereignEG (LLM / Embeddings) ────────────────────────────────
-    seg_api_key: str = ""
-    seg_base_url: str = "https://api.sovereigneg.ai"
-    seg_chat_model: str = "seg-chat"
-    seg_embed_model: str = "seg-embed"
+    seg_api_key: str = "sk-8d8f735718cfa406b108f7bf9a76e77b"
+    seg_base_url: str = "https://backend.sovereigneg.com/v1"
+    seg_chat_model: str = "gpt-oss-20b"
+    seg_embed_model: str = "bge-m3"
 
     model_config = SettingsConfigDict(
         env_file=".env",
