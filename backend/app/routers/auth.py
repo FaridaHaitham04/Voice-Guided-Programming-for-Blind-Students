@@ -50,7 +50,7 @@ def signup(body: SignUpRequest, db: Session = Depends(get_db)):
     # Seed default files, lessons, assessments, chat, and lesson chunks
     seed_user_data(user.id, db)
 
-    token = create_access_token({"sub": user.id})
+    token = create_access_token({"sub": str(user.id)})
     return AuthResponse(
         access_token=token,
         user=UserOut(
@@ -71,7 +71,7 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
             detail="Wrong email or password.",
         )
 
-    token = create_access_token({"sub": user.id})
+    token = create_access_token({"sub": str(user.id)})
     return AuthResponse(
         access_token=token,
         user=UserOut(
