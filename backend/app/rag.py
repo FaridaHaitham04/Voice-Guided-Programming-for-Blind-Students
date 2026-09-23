@@ -32,15 +32,16 @@ def _get_seg_client():
     global _seg_client
     if _seg_client is None:
         try:
-            from sovereigneg import SovereignEG
+            from openai import OpenAI
 
-            _seg_client = SovereignEG(
+            _seg_client = OpenAI(
                 api_key=settings.seg_api_key,
                 base_url=settings.seg_base_url,
             )
+
         except ImportError:
             logger.warning(
-                "sovereigneg package not installed — RAG will fall back to "
+                "openai package not installed — RAG will fall back to "
                 "simple keyword replies."
             )
     return _seg_client
@@ -114,8 +115,8 @@ def _embed_with_retry(client, text: str, retries: int = 1) -> list[float]:
     """Call client.embed() with a single retry on 429."""
     for attempt in range(retries + 1):
         try:
-            result = client.embed(text, model=settings.seg_embed_model)
-            # The SDK may return the embedding directly or nested
+            result = client.embeddings.create(input=[text],model=settings.seg_embed_model)
+
             if isinstance(result, list) and result and isinstance(result[0], float):
                 return result
             if hasattr(result, "embedding"):
@@ -139,8 +140,8 @@ def _chat_with_retry(client, messages: list[dict], retries: int = 1) -> str:
     """Call client.chat() with a single retry on 429."""
     for attempt in range(retries + 1):
         try:
-            result = client.chat(messages, model=settings.seg_chat_model)
-            # Handle various response shapes
+            result = client.chat.completions.create(messages=messages,model=settings.seg_chat_model)
+
             if isinstance(result, str):
                 return result
             if hasattr(result, "content"):
