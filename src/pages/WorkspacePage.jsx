@@ -27,7 +27,7 @@ export default function WorkspacePage({ user, onSignOut }) {
 
   // ── Load data on mount ────────────────────────────────────────────
   useEffect(() => {
-    document.title = "EchoCode \u2014 Workspace";
+    document.title = "BlindCode \u2014 Workspace";
 
     let cancelled = false;
 
@@ -92,7 +92,7 @@ export default function WorkspacePage({ user, onSignOut }) {
 
     return () => {
       cancelled = true;
-      document.title = "EchoCode \u2014 Sign in";
+      document.title = "BlindCode \u2014 Sign in";
     };
   }, [user.email]);
 
@@ -257,7 +257,7 @@ export default function WorkspacePage({ user, onSignOut }) {
           <span className="app-mic" aria-hidden="true">
             <MicIcon />
           </span>
-          <span className="app-name">EchoCode</span>
+          <span className="app-name">BlindCode</span>
           <span className={`listen-pill${listening ? " is-on" : ""}`}>
             <span className="listen-dot" aria-hidden="true" />
             Listening

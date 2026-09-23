@@ -1,5 +1,5 @@
 /**
- * Thin API client for the EchoCode backend.
+ * Thin API client for the BlindCode backend.
  *
  * - Base URL from VITE_API_URL (defaults to http://localhost:8000).
  * - Attaches JWT from localStorage when available.
@@ -8,7 +8,7 @@
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-const TOKEN_KEY = "echocode_token";
+const TOKEN_KEY = "blindcode_token";
 
 // ── Token management ──────────────────────────────────────────────────
 

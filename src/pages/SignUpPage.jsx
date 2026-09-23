@@ -30,7 +30,7 @@ export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
         password,
       });
       setToken(data.access_token);
-      announce(`Account created for ${data.user.name}. Opening EchoCode.`);
+      announce(`Account created for ${data.user.name}. Opening BlindCode.`);
       onSignedIn(data.user);
     } catch (err) {
       announce(err.message || "Sign-up failed. Please try again.");
@@ -43,7 +43,7 @@ export default function SignUpPage({ onBackToSignIn, onSignedIn }) {
     <AuthShell>
       <h1 id="page-heading" className="auth-title">Create an account</h1>
       <p className="auth-subtitle">
-        Set up EchoCode with your name, email, and a passphrase.
+        Set up BlindCode with your name, email, and a passphrase.
       </p>
 
       <div className="sr-only" aria-live="polite" aria-atomic="true">

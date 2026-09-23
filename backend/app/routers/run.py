@@ -55,7 +55,7 @@ def run_code(
         return RunResponse(output=["(no output)"])
 
     # Write to a temp file inside an isolated directory
-    tmp_dir = tempfile.mkdtemp(prefix="echocode_")
+    tmp_dir = tempfile.mkdtemp(prefix="blindcode_")
     script_path = os.path.join(tmp_dir, "user_script.py")
 
     try:

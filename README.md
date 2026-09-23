@@ -1,4 +1,4 @@
-# EchoCode — Voice-Guided Programming for Blind Students
+# BlindCode — Voice-Guided Programming for Blind Students
 
 A web-based Python programming environment with voice interaction, AI tutoring, and full accessibility for blind and low-vision students.
 

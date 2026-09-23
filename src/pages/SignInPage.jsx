@@ -158,7 +158,7 @@ export default function SignInPage({ onCreateAccount, onSignedIn }) {
       </form>
 
       <p className="auth-footer">
-        New to EchoCode?{" "}
+        New to BlindCode?{" "}
         <button type="button" className="text-link" onClick={onCreateAccount}>
           Create an account
         </button>

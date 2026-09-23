@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models for the EchoCode database."""
+"""SQLAlchemy ORM models for the BlindCode database."""
 
 from datetime import datetime, timezone
 

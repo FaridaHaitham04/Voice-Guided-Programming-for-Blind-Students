@@ -8,7 +8,7 @@ export default function AuthShell({ children }) {
         <span className="brand-mark" aria-hidden="true">
           <MicIcon />
         </span>
-        <span className="brand-name">EchoCode</span>
+        <span className="brand-name">BlindCode</span>
       </header>
       <section className="auth-card" aria-labelledby="page-heading">
         {children}

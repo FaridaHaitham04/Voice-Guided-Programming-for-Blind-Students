@@ -1,6 +1,6 @@
-# EchoCode Backend
+# BlindCode Backend
 
-FastAPI + SQLAlchemy + MySQL backend for the EchoCode voice-guided programming platform.
+FastAPI + SQLAlchemy + MySQL backend for the BlindCode voice-guided programming platform.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ From the **project root**:
 docker compose up -d
 ```
 
-This starts a MySQL 8 instance on port 3306 with the database `echocode`.
+This starts a MySQL 8 instance on port 3306 with the database `blindcode`.
 
 ### 2. Create a virtual environment
 

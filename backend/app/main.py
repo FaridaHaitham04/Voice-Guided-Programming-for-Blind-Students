@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="EchoCode API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="BlindCode API", version="0.1.0", lifespan=lifespan)
 
 # ── CORS ───────────────────────────────────────────────────────────────
 app.add_middleware(
