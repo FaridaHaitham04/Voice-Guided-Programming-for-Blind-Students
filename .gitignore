@@ -2,3 +2,7 @@ node_modules
 dist
 .DS_Store
 *.local
+LLM-Backend/.venv/
+LLM-Backend/.env
+__pycache__/
+*.pyc

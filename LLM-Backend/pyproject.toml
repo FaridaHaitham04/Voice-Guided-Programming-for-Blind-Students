@@ -1,0 +1,12 @@
+[project]
+name = "llm-backend"
+version = "0.1.0"
+description = "Backend for the Voice-Guided Programming Tutor"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai>=2.28.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
