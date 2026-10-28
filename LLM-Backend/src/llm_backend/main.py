@@ -1,7 +1,10 @@
 import os
+import re
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import base64
+import json
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
@@ -18,13 +21,93 @@ client = genai.Client(api_key=api_key)
 
 app = FastAPI()
 
+LIVE_MODELS = {
+    "gemini-3.8-live",
+    "gemini-2.5-flash-native-audio-preview-12-2025",
+}
+
+TUTOR_PROMPT = """You are a voice-first programming tutor for blind students. Speak clearly and concisely. Never rely on visual references. Explain code step by step, describe what it does and why it works, and kindly explain errors and fixes. Ask a brief clarification question when needed."""
+
 # Stores conversations while the server is running
 conversations = {}
+
+
+@app.websocket("/live")
+async def live_tutor(websocket: WebSocket):
+    """Bridge student text/transcripts to Gemini Live without exposing the API key."""
+    await websocket.accept()
+    try:
+        request = await websocket.receive_json()
+        model = request.get("model", "gemini-3.8-live")
+        if model not in LIVE_MODELS:
+            await websocket.send_json({"type": "error", "message": "That Live model is not enabled."})
+            await websocket.close(code=1008)
+            return
+
+        question = request.get("question", "").strip()
+        if not question:
+            await websocket.send_json({"type": "error", "message": "Please ask a question."})
+            await websocket.close(code=1008)
+            return
+
+        context = request.get("context", "")
+        prompt = f"Student question: {question}"
+        if context:
+            prompt += f"\n\nCurrent student work and output:\n{context}"
+
+        async with client.aio.live.connect(
+            model=model,
+            config={
+                "response_modalities": ["AUDIO"],
+                "system_instruction": TUTOR_PROMPT,
+                "output_audio_transcription": {},
+            },
+        ) as session:
+            await session.send_realtime_input(text=prompt)
+            async for response in session.receive():
+                content = response.server_content
+                if content:
+                    transcript = getattr(content, "output_transcription", None)
+                    if transcript and transcript.text:
+                        await websocket.send_json({"type": "text", "text": transcript.text})
+                    turn = getattr(content, "model_turn", None)
+                    if turn:
+                        for part in turn.parts:
+                            inline = getattr(part, "inline_data", None)
+                            if inline and inline.data:
+                                audio = inline.data
+                                if isinstance(audio, str):
+                                    encoded = audio
+                                else:
+                                    encoded = base64.b64encode(audio).decode("ascii")
+                                await websocket.send_json({
+                                    "type": "audio",
+                                    "data": encoded,
+                                    "mimeType": getattr(inline, "mime_type", "audio/pcm;rate=24000"),
+                                })
+                            elif getattr(part, "text", None):
+                                await websocket.send_json({"type": "text", "text": part.text})
+                    if getattr(content, "turn_complete", False):
+                        break
+        await websocket.send_json({"type": "done"})
+    except WebSocketDisconnect:
+        return
+    except Exception:
+        # Keep provider errors and configuration details on the server only.
+        await websocket.send_json({"type": "error", "message": "Gemini Live is unavailable for this model or account."})
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 class QuestionRequest(BaseModel):
     conversation_id: str
     question: str
+    current_file: str | None = None
+    code: str | None = None
+    output: str | None = None
 
 
 @app.get("/")
@@ -91,17 +174,28 @@ Follow these rules:
 
 14. When presenting code, say "The code is" instead of using visual phrases
     such as "looks like this".
+
+15. If the student asks you to write, create, or change code, provide one
+    complete Python file in a fenced python code block. Explain the purpose
+    and main steps briefly before or after the code block. Base the code on
+    the student's current file when one is included.
 """
 
     # Get previous conversation history
     conversation_history = conversations[request.conversation_id]
 
     # Add the new student question to the history
+    student_message = request.question
+    if request.code is not None:
+        student_message += f"\n\nCurrent file ({request.current_file or 'Python file'}):\n```python\n{request.code}\n```"
+    if request.output:
+        student_message += f"\n\nMost recent program output:\n{request.output}"
+
     conversation_history.append(
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text=request.question)
+                types.Part.from_text(text=student_message)
             ],
         )
     )
@@ -115,7 +209,11 @@ Follow these rules:
         ),
     )
 
-    answer = response.text
+    answer = response.text or "I could not prepare a reply. Please try again."
+    code_match = re.search(r"```(?:python|py)?\s*\n(.*?)```", answer, re.IGNORECASE | re.DOTALL)
+    suggested_code = code_match.group(1).strip("\n") if code_match else None
+    if code_match:
+        answer = (answer[:code_match.start()] + answer[code_match.end():]).strip()
 
     # Save Gemini's response to the conversation
     conversation_history.append(
@@ -130,4 +228,5 @@ Follow these rules:
     return {
         "conversation_id": request.conversation_id,
         "answer": answer,
+        "suggested_code": suggested_code,
     }

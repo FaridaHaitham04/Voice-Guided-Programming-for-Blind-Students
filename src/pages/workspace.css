@@ -347,6 +347,23 @@
   font-size: 1.05rem;
 }
 
+.model-choice {
+  display: grid;
+  gap: 3px;
+  color: #9aa3b2;
+  font-size: 0.68rem;
+}
+
+.model-choice select {
+  max-width: 205px;
+  border: 1px solid #3a4154;
+  border-radius: 7px;
+  background: #1c2030;
+  color: #e8eaf2;
+  padding: 5px 8px;
+  font: inherit;
+}
+
 .chat {
   overflow: auto;
   padding: 16px 14px 8px;
@@ -437,4 +454,46 @@
   gap: 8px;
   cursor: pointer;
   font-weight: 700;
+}
+
+.tutor-controls {
+  padding-bottom: 8px;
+}
+
+.question-form {
+  display: flex;
+  gap: 7px;
+  margin: 8px 12px;
+}
+
+.question-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #3a4154;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #10121a;
+  color: #e8eaf2;
+}
+
+.question-form button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #e8a317;
+  color: #201706;
+  font-weight: 700;
+}
+
+.question-form button:disabled,
+.speak-tutor:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.voice-note {
+  margin: 0 14px 4px;
+  color: #8b93a5;
+  font-size: 0.72rem;
+  text-align: center;
 }
