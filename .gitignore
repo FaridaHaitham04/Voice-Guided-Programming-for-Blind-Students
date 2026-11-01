@@ -1,4 +1,21 @@
-node_modules
-dist
-.DS_Store
-*.local
+# Python virtual environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+.env.*
+
+# IDE
+.vscode/
+
+# Node dependencies
+node_modules/
+
+# Build files
+dist/
+build/
