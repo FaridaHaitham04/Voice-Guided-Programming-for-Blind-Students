@@ -20,6 +20,7 @@ Configuration via environment variables (or just edit the lists below):
   OLLAMA_HOST        Ollama server URL (default: http://localhost:11434)
 """
 
+import argparse
 import csv
 import os
 import sys
@@ -85,6 +86,42 @@ def is_qwen3(model_name: str) -> bool:
     return model_name.lower().startswith("qwen3")
 
 
+def normalize_model_name(name: str) -> str:
+    """Normalize model names for comparison (e.g. 'qwen3:4b:latest' -> 'qwen3:4b', 'qwen3:latest' -> 'qwen3')."""
+    cleaned = name.strip()
+    if cleaned.endswith(":latest"):
+        return cleaned[:-7]
+    return cleaned
+
+
+def get_installed_models(client) -> list[str]:
+    """Retrieve list of model names currently pulled in Ollama."""
+    resp = client.list()
+    model_list = resp.models if hasattr(resp, "models") else resp.get("models", [])
+    installed: list[str] = []
+    for item in model_list:
+        if isinstance(item, dict):
+            name = item.get("model") or item.get("name")
+        else:
+            name = getattr(item, "model", None) or getattr(item, "name", None)
+        if name:
+            installed.append(str(name))
+    return installed
+
+
+def match_model(requested: str, installed: list[str]) -> str | None:
+    """
+    Check if a requested model is available among installed models.
+    Returns the installed model name if matched, else None.
+    Handles exact matches and :latest equivalence (e.g. 'qwen3:4b' and 'qwen3:4b:latest').
+    """
+    req_norm = normalize_model_name(requested)
+    for inst in installed:
+        if inst == requested or normalize_model_name(inst) == req_norm:
+            return inst
+    return None
+
+
 def stream_and_measure(client, model: str, question: str) -> dict:
     """
     Stream one question to `model` and return timing + content.
@@ -92,10 +129,10 @@ def stream_and_measure(client, model: str, question: str) -> dict:
     Returns a dict with keys:
       model, question, ttft_s, total_s, tokens_per_sec, answer
     """
-    options = {}
+    chat_kwargs = {}
     if is_qwen3(model):
         # Disable chain-of-thought thinking tokens so we measure actual output
-        options["think"] = False
+        chat_kwargs["think"] = False
 
     start = time.perf_counter()
     first_token_time: float | None = None
@@ -108,7 +145,7 @@ def stream_and_measure(client, model: str, question: str) -> dict:
             {"role": "user", "content": question},
         ],
         stream=True,
-        options=options if options else None,
+        **chat_kwargs,
     )
 
     for chunk in stream:
@@ -146,10 +183,12 @@ def warm_up(client, model: str) -> None:
     """
     print(f"  [warm-up] {model} …", end=" ", flush=True)
     t0 = time.perf_counter()
+    chat_kwargs = {"think": False} if is_qwen3(model) else {}
     for _ in client.chat(
         model=model,
         messages=[{"role": "user", "content": "Say hello in one word."}],
         stream=True,
+        **chat_kwargs,
     ):
         pass
     print(f"done ({time.perf_counter() - t0:.1f}s)")
@@ -250,6 +289,15 @@ def print_summary(rows: list[dict], models: list[str]) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="BlindCode LLM Benchmark")
+    parser.add_argument(
+        "--models",
+        type=str,
+        default=None,
+        help="Comma-separated model names to override default models list",
+    )
+    args = parser.parse_args()
+
     # Import here so the file is importable even if ollama isn't installed yet
     try:
         import ollama
@@ -259,18 +307,45 @@ def main() -> None:
             "Activate the venv and run: pip install ollama"
         )
 
+    if args.models:
+        target_models = [m.strip() for m in args.models.split(",") if m.strip()]
+    else:
+        target_models = list(MODELS)
+
     host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
     client = ollama.Client(host=host)
 
+    try:
+        installed = get_installed_models(client)
+    except Exception as e:
+        print(f"\nERROR: Could not connect to Ollama at {host}.")
+        print("Please check that Ollama is downloaded, running, and accessible.")
+        print(f"Details: {type(e).__name__}: {e}")
+        sys.exit(1)
+
+    available_models: list[str] = []
+    for model in target_models:
+        if match_model(model, installed):
+            available_models.append(model)
+        else:
+            print(f"[WARNING] Model '{model}' is not pulled in Ollama. Skipping.")
+
+    if not available_models:
+        print("\nERROR: None of the requested models are available in Ollama.")
+        print("\nTo pull the model(s), run:")
+        for m in target_models:
+            print(f"  ollama pull {m}")
+        sys.exit(1)
+
     print(f"BlindCode LLM Benchmark")
     print(f"Ollama host : {host}")
-    print(f"Models      : {', '.join(MODELS)}")
+    print(f"Models      : {', '.join(available_models)}")
     print(f"Questions   : {len(QUESTIONS)}")
     print()
 
     all_rows: list[dict] = []
 
-    for model in MODELS:
+    for model in available_models:
         print(f"\n{'─' * 60}")
         print(f"Model: {model}")
 
@@ -294,8 +369,8 @@ def main() -> None:
     md_path = OUT_DIR / "benchmark_answers.md"
 
     write_csv(all_rows, csv_path)
-    write_markdown(all_rows, QUESTIONS, MODELS, md_path)
-    print_summary(all_rows, MODELS)
+    write_markdown(all_rows, QUESTIONS, available_models, md_path)
+    print_summary(all_rows, available_models)
 
 
 if __name__ == "__main__":
