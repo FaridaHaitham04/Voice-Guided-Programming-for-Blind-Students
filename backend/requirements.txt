@@ -1,0 +1,12 @@
+# Core web framework and ASGI server
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+
+# Ollama Python client – used by the tutor endpoint and the benchmark tool
+ollama>=0.3.0
+
+# Data validation (FastAPI already pulls this in, listed explicitly for clarity)
+pydantic>=2.7.0
+
+# Loads .env files into os.environ so the app works without system-level env setup
+python-dotenv>=1.0.0
