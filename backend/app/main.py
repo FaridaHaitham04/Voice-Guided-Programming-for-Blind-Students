@@ -56,3 +56,4 @@ def health() -> dict:
         "status": "ok",
         "tutor_model": os.getenv("TUTOR_MODEL", "qwen2.5-coder:7b"),
     }
+

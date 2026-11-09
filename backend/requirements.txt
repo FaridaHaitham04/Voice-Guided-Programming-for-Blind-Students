@@ -10,3 +10,4 @@ pydantic>=2.7.0
 
 # Loads .env files into os.environ so the app works without system-level env setup
 python-dotenv>=1.0.0
+
