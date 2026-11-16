@@ -10,6 +10,9 @@ clean_for_speech(text)
     Strip markdown and other visual decoration from a model response so
     text-to-speech engines read it cleanly.  Safe to call per-sentence on a
     stream and idempotent: running it twice gives the same result.
+
+split_into_sentences(text)
+    Split text on sentence boundaries (., !, ?, newline) for streaming TTS.
 """
 
 from __future__ import annotations
@@ -194,11 +197,15 @@ def build_messages(
 #   immediately wrap a word boundary (no space between delimiter and content).
 # ---------------------------------------------------------------------------
 
+# Reasoning-model think blocks (<think>...</think>); stripped entirely before TTS.
+_RE_THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+
 # Triple-backtick fences: opening line (``` + optional lang) and closing line (```)
 # are removed; the content lines between them are kept.
 # We match the fence line-by-line so we can strip just the delimiter rows.
 _RE_FENCE_OPEN = re.compile(r"^```[^\n]*\n?", re.MULTILINE)
 _RE_FENCE_CLOSE = re.compile(r"^```\s*$", re.MULTILINE)
+_RE_INLINE_FENCE = re.compile(r"```(?:[A-Za-z0-9_+-]+\s+)?(.*?)```", re.DOTALL)
 
 # Inline backtick: `word` → word   (backtick removed, text kept)
 # Only matches when there is no newline inside (safe on sentence fragments).
@@ -297,9 +304,13 @@ def clean_for_speech(text: str) -> str:
     if not text:
         return ""
 
-    # Fences first: strip the opening/closing ``` lines, keep code content.
+    # Strip reasoning blocks first so inner thoughts never leak into TTS.
+    text = _RE_THINK_BLOCK.sub("", text)
+
+    # Fences next: strip the opening/closing ``` lines (and any inline ```...```), keep code content.
     text = _RE_FENCE_OPEN.sub("", text)
     text = _RE_FENCE_CLOSE.sub("", text)
+    text = _RE_INLINE_FENCE.sub(r"\1", text)
 
     text = _RE_INLINE_CODE.sub(r"\1", text)
     text = _RE_HEADING.sub("", text)
@@ -315,6 +326,42 @@ def clean_for_speech(text: str) -> str:
     text = _RE_MULTI_BLANK.sub("\n\n", text)
 
     return text.strip()
+
+
+# ---------------------------------------------------------------------------
+# split_into_sentences & streaming buffer helpers
+# ---------------------------------------------------------------------------
+
+_RE_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+|\n+")
+_RE_STREAM_BOUNDARY = re.compile(r"(?:(?<=[.!?])\s+|\n+)")
+
+
+def split_into_sentences(text: str) -> list[str]:
+    """
+    Split text into non-empty spoken sentences on sentence-ending punctuation
+    (., !, ?) followed by whitespace, or on newlines.
+    """
+    if not text or not text.strip():
+        return []
+    parts = _RE_SENTENCE_SPLIT.split(text.strip())
+    return [part.strip() for part in parts if part.strip()]
+
+
+def pop_complete_sentences(buffer: str) -> tuple[list[str], str]:
+    """
+    Extract any complete sentences from a streaming buffer, leaving any
+    incomplete trailing fragment in the returned remainder.
+    """
+    if not buffer:
+        return [], ""
+    last_end = 0
+    for match in _RE_STREAM_BOUNDARY.finditer(buffer):
+        last_end = match.end()
+    if last_end == 0:
+        return [], buffer
+    ready = buffer[:last_end]
+    remainder = buffer[last_end:]
+    return split_into_sentences(ready), remainder
 
 
 # ---------------------------------------------------------------------------

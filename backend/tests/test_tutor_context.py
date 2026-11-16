@@ -15,6 +15,8 @@ from app.tutor_context import (
     HISTORY_MAX_MESSAGES,
     build_messages,
     clean_for_speech,
+    pop_complete_sentences,
+    split_into_sentences,
 )
 
 
@@ -288,6 +290,12 @@ class TestCleanForSpeechCodeFences:
         once = clean_for_speech(text)
         assert clean_for_speech(once) == once
 
+    def test_inline_triple_backtick_fence_removed(self):
+        text = "Example: ```python for number in range(1, 6): print(number) ```"
+        result = clean_for_speech(text)
+        assert "```" not in result
+        assert "for number in range(1, 6): print(number)" in result
+
 
 # ===========================================================================
 # clean_for_speech – inline backticks
@@ -499,4 +507,49 @@ class TestCleanForSpeechRealistic:
         once = clean_for_speech(response)
         twice = clean_for_speech(once)
         assert once == twice
+
+
+class TestCleanForSpeechThinkBlocks:
+    def test_think_block_removed(self):
+        raw = "<think>Let me analyze this carefully.\nLine 1 is a variable.</think>\nGreat question! A variable stores a value."
+        result = clean_for_speech(raw)
+        assert "<think>" not in result
+        assert "analyze this carefully" not in result
+        assert result == "Great question! A variable stores a value."
+
+    def test_think_block_case_insensitive(self):
+        raw = "<THINK>Internal reasoning</THINK>Nice work!"
+        assert clean_for_speech(raw) == "Nice work!"
+
+
+class TestSplitIntoSentences:
+    def test_empty_returns_empty(self):
+        assert split_into_sentences("") == []
+        assert split_into_sentences("   \n ") == []
+
+    def test_splits_on_punctuation_and_newlines(self):
+        text = "Nice work! Let's check line 2.\nAre you ready?"
+        assert split_into_sentences(text) == [
+            "Nice work!",
+            "Let's check line 2.",
+            "Are you ready?",
+        ]
+
+    def test_preserves_filenames_and_decimals(self):
+        text = "Open lesson2.py and try 3.14 first. Sounds good?"
+        assert split_into_sentences(text) == [
+            "Open lesson2.py and try 3.14 first.",
+            "Sounds good?",
+        ]
+
+    def test_pop_complete_sentences_holds_trailing_fragment(self):
+        ready, rem = pop_complete_sentences("Nice work! Now check line ")
+        assert ready == ["Nice work!"]
+        assert rem == "Now check line "
+
+    def test_pop_complete_sentences_no_boundary(self):
+        ready, rem = pop_complete_sentences("Still typing lesson2.")
+        assert ready == []
+        assert rem == "Still typing lesson2."
+
 

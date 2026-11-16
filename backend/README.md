@@ -1,7 +1,10 @@
 # BlindCode – Backend
 
-FastAPI backend for the BlindCode voice-guided Python tutor.  
-It serves a REST API consumed by the Vite + React 19 frontend running on `http://localhost:5173`.
+FastAPI backend for the BlindCode voice-guided Python tutor.
+It powers the Vite + React 19 frontend on `http://localhost:5173` using:
+- **LLM**: `qwen3:4b` hosted locally via Ollama (`think=False` for fast responses)
+- **Speech-to-Text**: Whisper (`faster-whisper` via `POST /api/stt`)
+- **Text-to-Speech**: Piper TTS (`piper-tts` via `POST /api/tts`, with browser Web Speech fallback when local voice files are not configured)
 
 ---
 
@@ -9,45 +12,34 @@ It serves a REST API consumed by the Vite + React 19 frontend running on `http:/
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| Python | 3.11 + | Matches the `venv` already in this directory |
+| Python | 3.11+ | Matches the `venv` in `backend/` |
 | Ollama | latest | <https://ollama.com> – must be running locally |
-| Node / Vite | — | Frontend is in the repo root; backend is independent |
+| Node / Vite | — | Frontend runs from the repo root |
 
 ---
 
-## First-time setup
+## Setup
 
 ```bash
-# 1. Enter the backend directory
 cd backend
 
-# 2. Activate the virtual environment
-#    Windows PowerShell:
+# Activate the virtual environment (Windows PowerShell)
 .\venv\Scripts\Activate.ps1
-#    macOS / Linux:
-source venv/bin/activate
 
-# 3. Install / sync dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Create your local .env file
-copy .env.example .env     # Windows
-# cp .env.example .env     # macOS / Linux
-# Then edit .env if you need a different OLLAMA_HOST or TUTOR_MODEL
+# Optional local voice engines (Whisper + Piper TTS)
+pip install faster-whisper piper-tts
+
+# Create local .env
+copy .env.example .env
 ```
 
----
-
-## Pull the Ollama models
-
-Before running anything, pull the models you intend to use:
+Pull the tutor model in Ollama:
 
 ```bash
-ollama pull qwen2.5-coder:7b   # recommended tutor model (TUTOR_MODEL default)
-ollama pull qwen2.5-coder:1.5b # lightweight alternative
-ollama pull qwen3:8b           # benchmark only
-ollama pull qwen3:4b           # benchmark only
-ollama pull gemma3:4b          # benchmark only
+ollama pull qwen3:4b
 ```
 
 ---
@@ -55,49 +47,27 @@ ollama pull gemma3:4b          # benchmark only
 ## Run the API server
 
 ```bash
-# From the repo root (recommended – uvicorn resolves app as backend/app/main.py)
 cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
-The server starts at **<http://localhost:8000>**.
-
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/health` | GET | Liveness check; returns `{"status":"ok","tutor_model":"..."}` |
-| `/docs` | GET | Interactive Swagger UI (auto-generated) |
-| `/redoc` | GET | ReDoc API reference |
-
-### Quick smoke-test (PowerShell)
-
-```powershell
-Invoke-RestMethod http://localhost:8000/api/health
-```
-
-Expected output:
-```json
-{ "status": "ok", "tutor_model": "qwen2.5-coder:7b" }
-```
+| `/api/health` | GET | Liveness check, active `qwen3:4b` model, and Whisper/Piper readiness |
+| `/api/lessons` | GET | Structured Python lessons with walkthroughs and starter code |
+| `/api/lessons/{lesson_id}` | GET | Single lesson detail by ID |
+| `/api/tutor` | POST | Single-turn speech-cleaned tutor response |
+| `/api/tutor/stream` | POST | NDJSON sentence-by-sentence streaming tutor response |
+| `/api/stt` | POST | Speech-to-Text transcription via `faster-whisper` |
+| `/api/tts` | POST | Text-to-Speech WAV synthesis via Piper TTS |
 
 ---
 
-## Run the LLM benchmark
+## Run Tests
 
 ```bash
-# Activate the venv first, then from the backend/ directory:
-python tools/benchmark_llm.py
+.\venv\Scripts\pytest.exe tests -v
 ```
-
-Outputs written to `backend/tools/`:
-
-| File | Contents |
-|------|----------|
-| `benchmark_results.csv` | Raw metrics: model, question, TTFT, total time, tok/sec |
-| `benchmark_answers.md` | All answers side-by-side with empty 1–5 score columns |
-
-A formatted summary table is also printed to the terminal.
-
-Override models or questions via environment variables — see the top of `benchmark_llm.py`.
 
 ---
 
@@ -106,14 +76,16 @@ Override models or questions via environment variables — see the top of `bench
 ```
 backend/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py          ← FastAPI app, CORS, /api/health
-│   └── routers/         ← future route modules go here
-├── tools/
-│   ├── __init__.py
-│   └── benchmark_llm.py ← LLM benchmark script
-├── .env.example         ← copy → .env, never commit .env
+│   ├── prompts/
+│   │   └── tutor_system.md   ← Vision spoken tutor persona & few-shot examples
+│   ├── lessons_data.py       ← Structured Python lessons & code walkthroughs
+│   ├── main.py               ← FastAPI app & endpoints
+│   ├── tutor_context.py      ← Prompt assembly, speech cleaning & sentence splitter
+│   └── voice.py              ← faster-whisper STT & Piper TTS wrappers
+├── tests/
+│   ├── test_tutor_api.py
+│   └── test_tutor_context.py
+├── .env.example
 ├── requirements.txt
-└── README.md            ← you are here
+└── README.md
 ```
-
