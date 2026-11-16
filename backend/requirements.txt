@@ -2,7 +2,7 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 
-# Ollama Python client – used by the tutor endpoint (qwen3:4b)
+# Ollama Python client – used by the tutor endpoint (qwen2.5-coder:1.5b)
 ollama>=0.3.0
 
 # Data validation (FastAPI already pulls this in, listed explicitly for clarity)
