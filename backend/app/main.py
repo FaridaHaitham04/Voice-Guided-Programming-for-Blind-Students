@@ -23,10 +23,10 @@ import ollama
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.lessons_data import get_all_lessons, get_lesson_by_id
+from app.lessons_data import get_all_lessons, get_lesson_audio_path, get_lesson_by_id
 from app.tutor_context import build_messages, clean_for_speech, pop_complete_sentences
 from app.voice import (
     get_voice_capabilities,
@@ -91,6 +91,34 @@ def get_lesson(lesson_id: str) -> dict:
     if lesson is None:
         raise HTTPException(status_code=404, detail=f"Lesson '{lesson_id}' not found.")
     return lesson
+
+
+@app.get("/api/lessons/{lesson_id}/audio", tags=["lessons"])
+def get_lesson_audio(lesson_id: str):
+    """
+    Serve the constant pre-recorded WAV audio for a lesson.
+    Falls back to synthesizing and saving via Piper TTS if missing.
+    """
+    lesson = get_lesson_by_id(lesson_id)
+    if lesson is None:
+        raise HTTPException(status_code=404, detail=f"Lesson '{lesson_id}' not found.")
+
+    audio_path = get_lesson_audio_path(lesson_id)
+    if audio_path is not None:
+        return FileResponse(path=str(audio_path), media_type="audio/wav", filename=f"{lesson_id}.wav")
+
+    script_parts = lesson.get("script")
+    script_text = "\n\n".join(script_parts) if isinstance(script_parts, list) else lesson.get("concept_explanation", "")
+    cleaned = clean_for_speech(script_text)
+    if not cleaned:
+        raise HTTPException(status_code=400, detail="Lesson script is empty.")
+
+    try:
+        wav_bytes = synthesize_speech_bytes(cleaned, length_scale=1.22)
+    except RuntimeError as e:
+        raise HTTPException(status_code=501, detail=str(e)) from e
+
+    return Response(content=wav_bytes, media_type="audio/wav")
 
 
 # --- Tutor Endpoints ------------------------------------------------------- #
