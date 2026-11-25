@@ -18,7 +18,20 @@ It powers the Vite + React 19 frontend on `http://localhost:5173` using:
 
 ---
 
-## Setup
+## Quick Start (Recommended for Teammates)
+
+From the **repository root**, simply run:
+
+```powershell
+.\start.bat
+```
+*(or `.\start.ps1`)*
+
+On first run, this automatically creates `backend\venv`, installs all Python & Node dependencies, creates `backend\.env`, pulls `qwen2.5-coder:1.5b` in Ollama, and starts both the backend (`http://localhost:8000`) and frontend (`http://localhost:5173`).
+
+---
+
+## Manual Setup
 
 ```bash
 cd backend
@@ -26,11 +39,8 @@ cd backend
 # Activate the virtual environment (Windows PowerShell)
 .\venv\Scripts\Activate.ps1
 
-# Install core dependencies
+# Install all dependencies (includes FastAPI, Ollama, faster-whisper, and piper-tts)
 pip install -r requirements.txt
-
-# Optional local voice engines (Whisper + Piper TTS)
-pip install faster-whisper piper-tts
 
 # Create local .env
 copy .env.example .env
