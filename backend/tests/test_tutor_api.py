@@ -18,6 +18,7 @@ from app.main import (
     _ndjson_tutor_stream,
     chat_with_tutor,
     get_lesson,
+    get_lesson_audio,
     health,
     list_lessons,
     speech_to_text,
@@ -58,16 +59,32 @@ def test_health_endpoint():
 
 def test_lessons_endpoints():
     lessons = list_lessons()
-    assert len(lessons) == 3
-    assert [l["id"] for l in lessons] == ["lesson-1", "lesson-2", "lesson-3"]
+    assert len(lessons) == 6
+    assert [l["id"] for l in lessons] == [
+        "for-loop",
+        "for-each-loop",
+        "while-loop",
+        "nested-loops",
+        "loop-control",
+        "variables",
+    ]
+    loop_lessons = [l for l in lessons if l["module_id"] == "lesson-1"]
+    assert len(loop_lessons) == 5
     for lesson in lessons:
         assert lesson["title"]
+        assert lesson["module_id"]
+        assert lesson["module_title"]
+        assert lesson["audio_url"]
+        assert len(lesson["script"]) >= 3
         assert lesson["concept_explanation"]
         assert len(lesson["code_walkthrough"]) > 0
         assert lesson["practice_prompt"]
 
-    single = get_lesson("lesson-2")
-    assert single["file"] == "lesson2.py"
+    single = get_lesson("for-loop")
+    assert single["file"] == "for_loop.py"
+
+    audio_resp = get_lesson_audio("for-loop")
+    assert audio_resp.media_type == "audio/wav"
 
     with pytest.raises(HTTPException) as exc_info:
         get_lesson("non-existent-lesson")

@@ -1,0 +1,371 @@
+[
+  {
+    "id": "for-loop",
+    "module_id": "lesson-1",
+    "module_title": "Lesson 1 · Loops",
+    "title": "For Loop (with range)",
+    "subtitle": "Audio & Script · 1:38",
+    "file": "for_loop.py",
+    "audio_url": "/audio/lessons/for-loop.wav",
+    "duration_label": "1:38",
+    "summary": "Repeat an action a fixed number of times using a for loop and range().",
+    "script": [
+      "Imagine you are driving a toy car around a track and you want it to move forward five times in a row. Instead of writing the exact same move command five separate times, Python gives you a for loop. A for loop acts like a steady helper that repeats a block of code a specific number of times for you.",
+      "Let us walk through a simple counting example. On line 2, we write: for number in range(1, 6):. The keyword for starts the loop, number is a variable that holds one number at a time, and range(1, 6) tells Python to start at 1 and stop right before 6. That colon at the end of line 2 signals that the loop body is about to begin.",
+      "On line 3, indented four spaces underneath the colon, we write print(number). Those four spaces of indentation tell Python that print(number) belongs inside the loop. On each pass, Python updates number to 1, then 2, 3, 4, and 5, and speaks out each value.",
+      "When you run this file, the output prints the numbers 1 through 5 on separate lines. Try changing range(1, 6) on line 2 to range(1, 11) in the code editor and run it to hear the loop count all the way to 10."
+    ],
+    "concept_explanation": "Imagine you are driving a toy car around a track and you want it to move forward five times in a row. Instead of writing the exact same move command five separate times, Python gives you a for loop. A for loop acts like a steady helper that repeats a block of code a specific number of times for you.\n\nLet us walk through a simple counting example. On line 2, we write: for number in range(1, 6):. The keyword for starts the loop, number is a variable that holds one number at a time, and range(1, 6) tells Python to start at 1 and stop right before 6. That colon at the end of line 2 signals that the loop body is about to begin.\n\nOn line 3, indented four spaces underneath the colon, we write print(number). Those four spaces of indentation tell Python that print(number) belongs inside the loop. On each pass, Python updates number to 1, then 2, 3, 4, and 5, and speaks out each value.\n\nWhen you run this file, the output prints the numbers 1 through 5 on separate lines. Try changing range(1, 6) on line 2 to range(1, 11) in the code editor and run it to hear the loop count all the way to 10.",
+    "objectives": [
+      "Understand how range(1, 6) generates numbers from 1 through 5.",
+      "Recognize why the colon and four-space indentation group code inside the loop.",
+      "Predict and hear each line printed as the loop variable updates."
+    ],
+    "code_walkthrough": [
+      {
+        "line": 1,
+        "code": "# Print each number from 1 to 5",
+        "explanation": "Line 1 is a comment describing what this counting loop does."
+      },
+      {
+        "line": 2,
+        "code": "for number in range(1, 6):",
+        "explanation": "Line 2 starts the loop, assigning number to 1, then 2, up to 5, and ends with a colon."
+      },
+      {
+        "line": 3,
+        "code": "    print(number)",
+        "explanation": "Line 3 is indented four spaces inside the loop and prints the current value of number on each pass."
+      }
+    ],
+    "practice_prompt": "Try changing range(1, 6) on line 2 so the loop prints numbers from 1 to 10, then click Run to hear the output.",
+    "starter_code": "# Print each number from 1 to 5\nfor number in range(1, 6):\n    print(number)\n",
+    "default_output": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "assessments": [
+      {
+        "name": "Assessment 1",
+        "score": "8/10"
+      },
+      {
+        "name": "Assessment 2",
+        "score": null
+      }
+    ]
+  },
+  {
+    "id": "for-each-loop",
+    "module_id": "lesson-1",
+    "module_title": "Lesson 1 · Loops",
+    "title": "For-Each Loop (Lists & Strings)",
+    "subtitle": "Audio & Script · 1:14",
+    "file": "for_each_loop.py",
+    "audio_url": "/audio/lessons/for-each-loop.wav",
+    "duration_label": "1:14",
+    "summary": "Visit every item in a list or every character in a string one by one.",
+    "script": [
+      "Imagine you have a big box of toys and you want to pick up and play with each one individually. In Python, a for loop can visit each item in a collection one by one without needing range at all. People often call this a for-each loop because it runs once for each item.",
+      "Let us trace an example with a list of fruits. On line 2, we create a list: fruits = [\"apple\", \"banana\", \"cherry\"]. On line 3, we write: for fruit in fruits:. Here, the variable fruit takes the value of the first item, runs the loop body, then moves to the next item until the list is finished.",
+      "On line 4, indented four spaces, print(fruit) prints each fruit name on its own line: apple, then banana, then cherry. Notice how readable that is—it reads almost like plain English: for every fruit in fruits, print that fruit.",
+      "The exact same pattern also works on a text string, visiting one character at a time. Try adding another fruit name to the list on line 2, or replacing fruits on line 3 with a word like \"Python\", and run the code to hear every item."
+    ],
+    "concept_explanation": "Imagine you have a big box of toys and you want to pick up and play with each one individually. In Python, a for loop can visit each item in a collection one by one without needing range at all. People often call this a for-each loop because it runs once for each item.\n\nLet us trace an example with a list of fruits. On line 2, we create a list: fruits = [\"apple\", \"banana\", \"cherry\"]. On line 3, we write: for fruit in fruits:. Here, the variable fruit takes the value of the first item, runs the loop body, then moves to the next item until the list is finished.\n\nOn line 4, indented four spaces, print(fruit) prints each fruit name on its own line: apple, then banana, then cherry. Notice how readable that is—it reads almost like plain English: for every fruit in fruits, print that fruit.\n\nThe exact same pattern also works on a text string, visiting one character at a time. Try adding another fruit name to the list on line 2, or replacing fruits on line 3 with a word like \"Python\", and run the code to hear every item.",
+    "objectives": [
+      "Iterate directly over items in a Python list without using range().",
+      "Understand how the loop variable updates to each element in sequence.",
+      "Apply the same for-each pattern to characters in a string."
+    ],
+    "code_walkthrough": [
+      {
+        "line": 1,
+        "code": "# Visit each fruit in a list",
+        "explanation": "Line 1 is a comment introducing our list loop."
+      },
+      {
+        "line": 2,
+        "code": "fruits = [\"apple\", \"banana\", \"cherry\"]",
+        "explanation": "Line 2 stores three fruit strings inside square brackets in a variable called fruits."
+      },
+      {
+        "line": 3,
+        "code": "for fruit in fruits:",
+        "explanation": "Line 3 starts a for loop that assigns each item from fruits into the variable fruit one by one."
+      },
+      {
+        "line": 4,
+        "code": "    print(fruit)",
+        "explanation": "Line 4 is indented four spaces and prints the current fruit on each pass."
+      }
+    ],
+    "practice_prompt": "Try adding \"mango\" inside the square brackets on line 2, then run the program to hear all four fruits.",
+    "starter_code": "# Visit each fruit in a list\nfruits = [\"apple\", \"banana\", \"cherry\"]\nfor fruit in fruits:\n    print(fruit)\n",
+    "default_output": [
+      "apple",
+      "banana",
+      "cherry"
+    ],
+    "assessments": [
+      {
+        "name": "Assessment 1",
+        "score": null
+      }
+    ]
+  },
+  {
+    "id": "while-loop",
+    "module_id": "lesson-1",
+    "module_title": "Lesson 1 · Loops",
+    "title": "While Loop",
+    "subtitle": "Audio & Script · 1:21",
+    "file": "while_loop.py",
+    "audio_url": "/audio/lessons/while-loop.wav",
+    "duration_label": "1:21",
+    "summary": "Keep repeating a block of code as long as a condition stays true, like a countdown timer.",
+    "script": [
+      "Imagine a countdown timer in a game. You start at 3 seconds, and every second the timer checks if there is still time left before ticking down again. That is exactly how a while loop works in Python: instead of counting a fixed range, it keeps repeating as long as a condition stays true.",
+      "Let us follow the countdown example step by step. On line 2, we set count = 3. On line 3, we write: while count > 0:. Before every single pass, Python checks whether count is still greater than zero. As long as that check is true, Python enters the indented block below.",
+      "Inside the loop body, lines 4 and 5 are both indented four spaces. Line 4 runs print(count) to output the current number. Line 5 runs count = count - 1, subtracting 1 from count so the countdown moves closer to zero. Updating count inside the loop is essential—without it, count would stay 3 forever and create an infinite loop.",
+      "Once count reaches 0, the condition count > 0 becomes false, so the while loop stops cleanly after printing 3, 2, and 1. Try changing count on line 2 to 5 and running the code to hear a longer countdown."
+    ],
+    "concept_explanation": "Imagine a countdown timer in a game. You start at 3 seconds, and every second the timer checks if there is still time left before ticking down again. That is exactly how a while loop works in Python: instead of counting a fixed range, it keeps repeating as long as a condition stays true.\n\nLet us follow the countdown example step by step. On line 2, we set count = 3. On line 3, we write: while count > 0:. Before every single pass, Python checks whether count is still greater than zero. As long as that check is true, Python enters the indented block below.\n\nInside the loop body, lines 4 and 5 are both indented four spaces. Line 4 runs print(count) to output the current number. Line 5 runs count = count - 1, subtracting 1 from count so the countdown moves closer to zero. Updating count inside the loop is essential—without it, count would stay 3 forever and create an infinite loop.\n\nOnce count reaches 0, the condition count > 0 becomes false, so the while loop stops cleanly after printing 3, 2, and 1. Try changing count on line 2 to 5 and running the code to hear a longer countdown.",
+    "objectives": [
+      "Check a condition before each repetition using while count > 0.",
+      "Update the loop variable inside the indented body so the loop ends cleanly.",
+      "Trace how count changes from 3 down to 1 step by step."
+    ],
+    "code_walkthrough": [
+      {
+        "line": 1,
+        "code": "# Count down with a while loop",
+        "explanation": "Line 1 is a comment introducing our countdown program."
+      },
+      {
+        "line": 2,
+        "code": "count = 3",
+        "explanation": "Line 2 sets the starting variable count to 3."
+      },
+      {
+        "line": 3,
+        "code": "while count > 0:",
+        "explanation": "Line 3 checks if count is greater than zero; while that stays true, the indented lines keep repeating."
+      },
+      {
+        "line": 4,
+        "code": "    print(count)",
+        "explanation": "Line 4 is indented four spaces and prints the current countdown number."
+      },
+      {
+        "line": 5,
+        "code": "    count = count - 1",
+        "explanation": "Line 5 is also indented four spaces and subtracts 1 from count so the countdown moves closer to zero."
+      }
+    ],
+    "practice_prompt": "Try changing count on line 2 to 5, or add an unindented print(\"Liftoff!\") on line 6 after the loop finishes.",
+    "starter_code": "# Count down with a while loop\ncount = 3\nwhile count > 0:\n    print(count)\n    count = count - 1\n",
+    "default_output": [
+      "3",
+      "2",
+      "1"
+    ],
+    "assessments": [
+      {
+        "name": "Assessment 1",
+        "score": null
+      }
+    ]
+  },
+  {
+    "id": "nested-loops",
+    "module_id": "lesson-1",
+    "module_title": "Lesson 1 · Loops",
+    "title": "Nested Loops",
+    "subtitle": "Audio & Script · 1:29",
+    "file": "nested_loops.py",
+    "audio_url": "/audio/lessons/nested-loops.wav",
+    "duration_label": "1:29",
+    "summary": "Place one loop inside another to work through pairs, grids, or repeated rounds.",
+    "script": [
+      "A nested loop simply means placing one loop inside the body of another loop. Think of a clock with an hour hand and a minute hand: for every single step of the hour hand, the minute hand completes an entire round before the hour hand moves again.",
+      "In our example, line 2 starts the outer loop with: for outer in range(1, 3):. That outer loop runs twice, with outer equal to 1 and then 2. Indented four spaces on line 3, we start the inner loop: for inner in range(1, 4):. That inner loop runs three times, for 1, 2, and 3.",
+      "On line 4, indented eight spaces because it sits inside both loops, we write print(outer, inner). When outer is 1, the inner loop runs completely and prints 1 1, 1 2, and 1 3. Then outer steps to 2, and the inner loop runs all over again, printing 2 1, 2 2, and 2 3.",
+      "Altogether, two outer steps times three inner steps produce six pairs of numbers. Try changing range(1, 3) on line 2 to range(1, 4) in the editor and run it to hear nine pairs."
+    ],
+    "concept_explanation": "A nested loop simply means placing one loop inside the body of another loop. Think of a clock with an hour hand and a minute hand: for every single step of the hour hand, the minute hand completes an entire round before the hour hand moves again.\n\nIn our example, line 2 starts the outer loop with: for outer in range(1, 3):. That outer loop runs twice, with outer equal to 1 and then 2. Indented four spaces on line 3, we start the inner loop: for inner in range(1, 4):. That inner loop runs three times, for 1, 2, and 3.\n\nOn line 4, indented eight spaces because it sits inside both loops, we write print(outer, inner). When outer is 1, the inner loop runs completely and prints 1 1, 1 2, and 1 3. Then outer steps to 2, and the inner loop runs all over again, printing 2 1, 2 2, and 2 3.\n\nAltogether, two outer steps times three inner steps produce six pairs of numbers. Try changing range(1, 3) on line 2 to range(1, 4) in the editor and run it to hear nine pairs.",
+    "objectives": [
+      "Recognize how indentation (4 spaces vs 8 spaces) separates outer and inner loops.",
+      "Trace how the inner loop finishes all iterations for each single outer iteration.",
+      "Predict total output lines by multiplying outer and inner counts."
+    ],
+    "code_walkthrough": [
+      {
+        "line": 1,
+        "code": "# Repeat an inner loop inside an outer loop",
+        "explanation": "Line 1 is a comment introducing nested loops."
+      },
+      {
+        "line": 2,
+        "code": "for outer in range(1, 3):",
+        "explanation": "Line 2 starts the outer loop, running for outer equal to 1 and then 2."
+      },
+      {
+        "line": 3,
+        "code": "    for inner in range(1, 4):",
+        "explanation": "Line 3 is indented four spaces and starts the inner loop from 1 to 3 for each outer step."
+      },
+      {
+        "line": 4,
+        "code": "        print(outer, inner)",
+        "explanation": "Line 4 is indented eight spaces inside both loops and prints the current outer and inner pair."
+      }
+    ],
+    "practice_prompt": "Try changing range(1, 3) on line 2 to range(1, 4) and click Run to hear all nine pairs.",
+    "starter_code": "# Repeat an inner loop inside an outer loop\nfor outer in range(1, 3):\n    for inner in range(1, 4):\n        print(outer, inner)\n",
+    "default_output": [
+      "1 1",
+      "1 2",
+      "1 3",
+      "2 1",
+      "2 2",
+      "2 3"
+    ],
+    "assessments": [
+      {
+        "name": "Assessment 1",
+        "score": null
+      }
+    ]
+  },
+  {
+    "id": "loop-control",
+    "module_id": "lesson-1",
+    "module_title": "Lesson 1 · Loops",
+    "title": "Loop Control: break & continue",
+    "subtitle": "Audio & Script · 1:21",
+    "file": "loop_control.py",
+    "audio_url": "/audio/lessons/loop-control.wav",
+    "duration_label": "1:21",
+    "summary": "Use continue to skip one step of a loop, and break to exit the loop early.",
+    "script": [
+      "Sometimes while walking through a loop, you want to skip just one item or stop the loop completely before it finishes. Imagine collecting stars in a game: if you spot an obstacle you skip over it and keep going, and if you reach the finish line you stop collecting right away. Python gives us two keywords for this: continue and break.",
+      "The continue keyword skips the rest of the current pass and jumps straight to the next item in the loop. In our example, line 2 loops number from 1 through 6. On line 3, we check if number == 3:. When number is 3, line 4 runs continue, so Python skips print(number) on line 7 and moves directly to number 4.",
+      "The break keyword works differently: it exits the entire loop immediately and never comes back for later numbers. On line 5, we check if number == 5:. As soon as number reaches 5, line 6 runs break, ending the loop right on the spot before 5 or 6 can be printed.",
+      "Because 3 is skipped by continue and 5 triggers break, running this file prints only 1, 2, and 4. Try changing number == 3 to number == 2 on line 3 and run the code to hear the difference."
+    ],
+    "concept_explanation": "Sometimes while walking through a loop, you want to skip just one item or stop the loop completely before it finishes. Imagine collecting stars in a game: if you spot an obstacle you skip over it and keep going, and if you reach the finish line you stop collecting right away. Python gives us two keywords for this: continue and break.\n\nThe continue keyword skips the rest of the current pass and jumps straight to the next item in the loop. In our example, line 2 loops number from 1 through 6. On line 3, we check if number == 3:. When number is 3, line 4 runs continue, so Python skips print(number) on line 7 and moves directly to number 4.\n\nThe break keyword works differently: it exits the entire loop immediately and never comes back for later numbers. On line 5, we check if number == 5:. As soon as number reaches 5, line 6 runs break, ending the loop right on the spot before 5 or 6 can be printed.\n\nBecause 3 is skipped by continue and 5 triggers break, running this file prints only 1, 2, and 4. Try changing number == 3 to number == 2 on line 3 and run the code to hear the difference.",
+    "objectives": [
+      "Use continue to skip the remainder of a single loop iteration.",
+      "Use break to exit a loop immediately when a target condition is met.",
+      "Trace which values are printed versus skipped or stopped."
+    ],
+    "code_walkthrough": [
+      {
+        "line": 1,
+        "code": "# Skip 3 with continue, stop at 5 with break",
+        "explanation": "Line 1 is a comment explaining our goal with continue and break."
+      },
+      {
+        "line": 2,
+        "code": "for number in range(1, 7):",
+        "explanation": "Line 2 loops number from 1 through 6."
+      },
+      {
+        "line": 3,
+        "code": "    if number == 3:",
+        "explanation": "Line 3 checks whether number equals 3."
+      },
+      {
+        "line": 4,
+        "code": "        continue",
+        "explanation": "Line 4 is indented eight spaces inside the if check and skips straight to the next number when number is 3."
+      },
+      {
+        "line": 5,
+        "code": "    if number == 5:",
+        "explanation": "Line 5 checks whether number equals 5."
+      },
+      {
+        "line": 6,
+        "code": "        break",
+        "explanation": "Line 6 stops and exits the entire loop as soon as number reaches 5."
+      },
+      {
+        "line": 7,
+        "code": "    print(number)",
+        "explanation": "Line 7 prints number for any pass that was not skipped or stopped."
+      }
+    ],
+    "practice_prompt": "Try changing number == 3 to number == 2, or change number == 5 to number == 6, and click Run.",
+    "starter_code": "# Skip 3 with continue, stop at 5 with break\nfor number in range(1, 7):\n    if number == 3:\n        continue\n    if number == 5:\n        break\n    print(number)\n",
+    "default_output": [
+      "1",
+      "2",
+      "4"
+    ],
+    "assessments": [
+      {
+        "name": "Assessment 1",
+        "score": null
+      }
+    ]
+  },
+  {
+    "id": "variables",
+    "module_id": "lesson-2",
+    "module_title": "Lesson 2 · Variables",
+    "title": "Variables in Python",
+    "subtitle": "Audio & Script · 0:59",
+    "file": "variables.py",
+    "audio_url": "/audio/lessons/variables.wav",
+    "duration_label": "0:59",
+    "summary": "Store a piece of text or a number inside a labeled variable and print it out.",
+    "script": [
+      "Think of a variable like a labeled jar on your desk where you can tuck away a piece of information to reuse later. You give the jar a clear label name, and then Python remembers whatever value you put inside it.",
+      "On line 2, we write: name = \"Ada\". On the left side of the equals sign is the variable label name, and on the right side is the text Ada wrapped in double quotation marks. The equals sign tells Python to store Ada inside the jar labeled name.",
+      "On line 3, we call print(name). Notice that name has no quotation marks here because we want Python to open the jar and speak out the value stored inside it, rather than printing the word name itself.",
+      "Whenever you reassign name to a new value, Python replaces what is inside the jar and prints the updated text. Try changing \"Ada\" on line 2 to your own name and click Run."
+    ],
+    "concept_explanation": "Think of a variable like a labeled jar on your desk where you can tuck away a piece of information to reuse later. You give the jar a clear label name, and then Python remembers whatever value you put inside it.\n\nOn line 2, we write: name = \"Ada\". On the left side of the equals sign is the variable label name, and on the right side is the text Ada wrapped in double quotation marks. The equals sign tells Python to store Ada inside the jar labeled name.\n\nOn line 3, we call print(name). Notice that name has no quotation marks here because we want Python to open the jar and speak out the value stored inside it, rather than printing the word name itself.\n\nWhenever you reassign name to a new value, Python replaces what is inside the jar and prints the updated text. Try changing \"Ada\" on line 2 to your own name and click Run.",
+    "objectives": [
+      "Create a string variable using a label, an equals sign, and quotation marks.",
+      "Print the value stored inside a variable using print(name).",
+      "Change a variable's value and run the file to hear the updated output."
+    ],
+    "code_walkthrough": [
+      {
+        "line": 1,
+        "code": "# Store a name, then print it",
+        "explanation": "Line 1 starts with a hash symbol, making it a comment that Python skips while explaining the goal to you."
+      },
+      {
+        "line": 2,
+        "code": "name = \"Ada\"",
+        "explanation": "Line 2 creates a variable called name and stores the text Ada inside double quotation marks."
+      },
+      {
+        "line": 3,
+        "code": "print(name)",
+        "explanation": "Line 3 calls print, open parenthesis, name, close parenthesis, so Python outputs Ada."
+      }
+    ],
+    "practice_prompt": "Try changing \"Ada\" on line 2 to your own name, or add a second variable called greeting on line 4 and print it.",
+    "starter_code": "# Store a name, then print it\nname = \"Ada\"\nprint(name)\n",
+    "default_output": [
+      "Ada"
+    ],
+    "assessments": [
+      {
+        "name": "Assessment 1",
+        "score": "9/10"
+      },
+      {
+        "name": "Assessment 2",
+        "score": "10/10"
+      }
+    ]
+  }
+]
