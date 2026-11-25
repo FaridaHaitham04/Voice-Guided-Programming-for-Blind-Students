@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import LessonAudioPlayer from "../components/LessonAudioPlayer.jsx";
 import MicIcon from "../components/MicIcon.jsx";
+import DEFAULT_LESSONS from "../data/lessonsData.json";
 import { highlightPython } from "../utils/highlightPython.js";
 import { runSimplePython } from "../utils/runPython.js";
 import "./workspace.css";
@@ -12,147 +14,8 @@ const SPEECH_RATE_PRESETS = {
   normal: { label: "Normal", lengthScale: 1.1, browserRate: 0.95 },
 };
 
-const DEFAULT_LESSONS = [
-  {
-    id: "lesson-1",
-    title: "Lesson 1 · Variables",
-    file: "lesson1.py",
-    summary: "Store a piece of text or a number inside a labeled variable and print it out.",
-    concept_explanation:
-      "Think of a variable like a labeled jar on your desk where you can tuck away a piece of information to reuse later. On the left side of the equals sign, you write the label name, and on the right side you put the value you want to store. Whenever you pass that label into the print command, Python opens the jar and speaks out whatever is inside.",
-    objectives: [
-      "Create a string variable using a label, an equals sign, and quotation marks.",
-      "Print the value stored inside a variable using print(name).",
-      "Change a variable's value and run the file to hear the updated output.",
-    ],
-    code_walkthrough: [
-      {
-        line: 1,
-        code: "# Store a name, then print it",
-        explanation:
-          "Line 1 starts with a hash symbol, making it a comment that Python skips while explaining the goal to you.",
-      },
-      {
-        line: 2,
-        code: 'name = "Ada"',
-        explanation:
-          "Line 2 creates a variable called name and stores the text Ada inside double quotation marks.",
-      },
-      {
-        line: 3,
-        code: "print(name)",
-        explanation:
-          "Line 3 calls print, open parenthesis, name, close parenthesis, so Python outputs Ada.",
-      },
-    ],
-    practice_prompt:
-      'Try changing "Ada" on line 2 to your own name, or add a second variable called greeting on line 4 and print it.',
-    starter_code: '# Store a name, then print it\nname = "Ada"\nprint(name)\n',
-    default_output: ["Ada"],
-    assessments: [
-      { name: "Assessment 1", score: "9/10" },
-      { name: "Assessment 2", score: "10/10" },
-    ],
-  },
-  {
-    id: "lesson-2",
-    title: "Lesson 2 · For loops",
-    file: "lesson2.py",
-    summary: "Repeat an action automatically for each number in a sequence using a for loop.",
-    concept_explanation:
-      "A for loop is like stepping through a short playlist track by track without rewriting the play command each time. With range(1, 6), Python counts starting at 1 and stops right before 6, giving you 1, 2, 3, 4, and 5. Every line indented four spaces underneath the colon belongs inside the loop and runs once per number.",
-    objectives: [
-      "Understand how range(1, 6) generates numbers from 1 through 5.",
-      "Recognize why the colon and four-space indentation group code inside the loop.",
-      "Predict and hear each line printed as the loop variable updates.",
-    ],
-    code_walkthrough: [
-      {
-        line: 1,
-        code: "# Print each number from 1 to 5",
-        explanation: "Line 1 is a comment describing what this counting loop does.",
-      },
-      {
-        line: 2,
-        code: "for number in range(1, 6):",
-        explanation:
-          "Line 2 starts the loop, assigning number to 1, then 2, up to 5, and ends with a colon.",
-      },
-      {
-        line: 3,
-        code: "    print(number)",
-        explanation:
-          "Line 3 is indented four spaces inside the loop and prints the current value of number on each pass.",
-      },
-    ],
-    practice_prompt:
-      "Try changing range(1, 6) on line 2 so the loop prints numbers from 1 to 10, then click Run to hear the output.",
-    starter_code:
-      "# Print each number from 1 to 5\nfor number in range(1, 6):\n    print(number)\n",
-    default_output: ["1", "2", "3", "4", "5"],
-    assessments: [
-      { name: "Assessment 1", score: "8/10" },
-      { name: "Assessment 2", score: null },
-    ],
-  },
-  {
-    id: "lesson-3",
-    title: "Lesson 3 · While loops",
-    file: "lesson3.py",
-    summary:
-      "Keep repeating a block of code as long as a condition stays true, like a countdown timer.",
-    concept_explanation:
-      "A while loop acts like a countdown timer that keeps ticking only while a check remains true. Before every pass, Python checks whether count is still greater than zero. Inside the indented body, we print count and subtract one from it so the loop eventually reaches zero and stops safely.",
-    objectives: [
-      "Check a condition before each repetition using while count > 0.",
-      "Update the loop variable inside the indented body so the loop ends cleanly.",
-      "Trace how count changes from 3 down to 1 step by step.",
-    ],
-    code_walkthrough: [
-      {
-        line: 1,
-        code: "# Count down with a while loop",
-        explanation: "Line 1 is a comment introducing our countdown program.",
-      },
-      {
-        line: 2,
-        code: "count = 3",
-        explanation: "Line 2 sets the starting variable count to 3.",
-      },
-      {
-        line: 3,
-        code: "while count > 0:",
-        explanation:
-          "Line 3 checks if count is greater than zero; while that stays true, the indented lines keep repeating.",
-      },
-      {
-        line: 4,
-        code: "    print(count)",
-        explanation: "Line 4 is indented four spaces and prints the current countdown number.",
-      },
-      {
-        line: 5,
-        code: "    count = count - 1",
-        explanation:
-          "Line 5 is also indented four spaces and subtracts 1 from count so the countdown moves closer to zero.",
-      },
-    ],
-    practice_prompt:
-      'Try changing count on line 2 to 5, or add an unindented print("Liftoff!") on line 6 after the loop finishes.',
-    starter_code:
-      "# Count down with a while loop\ncount = 3\nwhile count > 0:\n    print(count)\n    count = count - 1\n",
-    default_output: ["3", "2", "1"],
-    assessments: [
-      { name: "Assessment 1", score: null },
-      { name: "Assessment 2", score: null },
-    ],
-  },
-];
-
 const INITIAL_FILES = {
-  "lesson1.py": DEFAULT_LESSONS[0].starter_code,
-  "lesson2.py": DEFAULT_LESSONS[1].starter_code,
-  "lesson3.py": DEFAULT_LESSONS[2].starter_code,
+  ...Object.fromEntries(DEFAULT_LESSONS.map((l) => [l.file, l.starter_code])),
   "trial.py": '# Practice in this file\nprint("hello")\n',
   "test.py": "# Quick test\nprint(1 + 1)\n",
 };
@@ -160,13 +23,7 @@ const INITIAL_FILES = {
 const INITIAL_CHAT = [
   {
     from: "ai",
-    text: "Line 3 prints each value of number as the loop runs. Want me to read the output aloud?",
-    audio: true,
-  },
-  { from: "you", text: "Yes, read it out." },
-  {
-    from: "ai",
-    text: "It prints one, two, three, four, five — five lines total, counted correctly.",
+    text: "Welcome! Open Lesson 1 Loops on the left, listen to the For Loop audio or read its script, and ask me anytime you want extra help.",
     audio: true,
   },
 ];
@@ -174,19 +31,20 @@ const INITIAL_CHAT = [
 export default function WorkspacePage({ user, onSignOut }) {
   const [lessons, setLessons] = useState(DEFAULT_LESSONS);
   const [files, setFiles] = useState(INITIAL_FILES);
-  const [activeFile, setActiveFile] = useState("lesson2.py");
-  const [openFiles, setOpenFiles] = useState(["lesson2.py", "trial.py"]);
-  const [activeLesson, setActiveLesson] = useState("lesson-2");
+  const [activeFile, setActiveFile] = useState(DEFAULT_LESSONS[0].file);
+  const [openFiles, setOpenFiles] = useState([DEFAULT_LESSONS[0].file, "trial.py"]);
+  const [activeLesson, setActiveLesson] = useState(DEFAULT_LESSONS[0].id);
+  const [expandedModules, setExpandedModules] = useState({ "lesson-1": true });
   const [lessonViewerOpen, setLessonViewerOpen] = useState(true);
-  const [lessonTab, setLessonTab] = useState("concept");
-  const [isReadingLesson, setIsReadingLesson] = useState(false);
+  const [lessonExpanded, setLessonExpanded] = useState(false);
+  const [lessonTab, setLessonTab] = useState("script");
 
   const [cursorLine, setCursorLine] = useState(3);
-  const [output, setOutput] = useState(["1", "2", "3", "4", "5"]);
+  const [output, setOutput] = useState(DEFAULT_LESSONS[0].default_output || ["1", "2", "3", "4", "5"]);
   const [chat, setChat] = useState(INITIAL_CHAT);
   const [listening, setListening] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const [announce, setAnnounce] = useState("Opened Lesson 2, for loops.");
+  const [announce, setAnnounce] = useState(`Opened ${DEFAULT_LESSONS[0].title}.`);
   const [tutorInput, setTutorInput] = useState("");
   const [voiceCapabilities, setVoiceCapabilities] = useState({
     faster_whisper_available: false,
@@ -209,14 +67,29 @@ export default function WorkspacePage({ user, onSignOut }) {
 
   const code = files[activeFile] ?? "";
   const lines = useMemo(() => highlightPython(code.replace(/\n$/, "") || " "), [code]);
-  const currentLesson = useMemo(
-    () => lessons.find((l) => l.id === activeLesson) || lessons[0],
-    [lessons, activeLesson]
-  );
+  const currentLessonIndex = useMemo(() => {
+    const idx = lessons.findIndex((l) => l.id === activeLesson);
+    return idx >= 0 ? idx : 0;
+  }, [lessons, activeLesson]);
+  const currentLesson = lessons[currentLessonIndex] || lessons[0];
+  const nextLesson =
+    currentLessonIndex < lessons.length - 1 ? lessons[currentLessonIndex + 1] : null;
+  const modules = useMemo(() => {
+    const map = new Map();
+    for (const lesson of lessons) {
+      const modId = lesson.module_id || "lesson-1";
+      const modTitle = lesson.module_title || "Lesson 1 · Loops";
+      if (!map.has(modId)) {
+        map.set(modId, { id: modId, title: modTitle, items: [] });
+      }
+      map.get(modId).items.push(lesson);
+    }
+    return Array.from(map.values());
+  }, [lessons]);
 
   useEffect(() => {
     document.title = "BlindCode — Workspace";
-    setAnnounce(`Signed in as ${user.email}. Lesson 2, for loops is open.`);
+    setAnnounce(`Signed in as ${user.email}. ${DEFAULT_LESSONS[0].title} is open.`);
     return () => {
       document.title = "BlindCode — Sign in";
       cancelSpeech();
@@ -267,7 +140,6 @@ export default function WorkspacePage({ user, onSignOut }) {
     speechEpochRef.current += 1;
     speechQueueRef.current = [];
     isSpeakingQueueRef.current = false;
-    setIsReadingLesson(false);
     if (speechPauseTimerRef.current) {
       clearTimeout(speechPauseTimerRef.current);
       speechPauseTimerRef.current = null;
@@ -430,11 +302,21 @@ export default function WorkspacePage({ user, onSignOut }) {
     setAnnounce(`${name} opened.`);
   }
 
+  function toggleModuleDropdown(moduleId) {
+    setExpandedModules((prev) => ({
+      ...prev,
+      [moduleId]: !prev[moduleId],
+    }));
+  }
+
   function selectLesson(lesson) {
     cancelSpeech();
     setActiveLesson(lesson.id);
+    if (lesson.module_id) {
+      setExpandedModules((prev) => ({ ...prev, [lesson.module_id]: true }));
+    }
     setLessonViewerOpen(true);
-    setLessonTab("concept");
+    setLessonTab("script");
     setActiveFile(lesson.file);
     setOpenFiles((current) =>
       current.includes(lesson.file) ? current : [...current, lesson.file]
@@ -448,31 +330,6 @@ export default function WorkspacePage({ user, onSignOut }) {
     setCursorLine(printLine || 1);
     setOutput(computeOutputForFile(lesson.file, fileContent));
     setAnnounce(`Opened ${lesson.title}. ${lesson.summary}`);
-  }
-
-  function toggleReadLesson() {
-    if (isReadingLesson) {
-      cancelSpeech();
-      setAnnounce("Stopped reading lesson.");
-      return;
-    }
-    if (!currentLesson) return;
-
-    const walkthroughText = (currentLesson.code_walkthrough || [])
-      .map((item) => item.explanation)
-      .join(" ");
-    const fullScript = [
-      `${currentLesson.title}. ${currentLesson.summary}`,
-      currentLesson.concept_explanation,
-      walkthroughText,
-      `Practice task: ${currentLesson.practice_prompt}`,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    setIsReadingLesson(true);
-    setAnnounce(`Reading ${currentLesson.title} aloud.`);
-    speakText(fullScript, () => setIsReadingLesson(false));
   }
 
   function focusAndSpeakLine(item) {
@@ -832,36 +689,69 @@ export default function WorkspacePage({ user, onSignOut }) {
       <div className="workspace-body">
         <nav className="sidebar" aria-label="Course">
           <p className="nav-label">Course</p>
-          <p className="nav-course">Intro to Loops</p>
-          <ul className="lesson-list">
-            {lessons.map((lesson) => {
-              const isSelected = activeLesson === lesson.id;
+          <p className="nav-course">Python Programming</p>
+          <div className="module-list">
+            {modules.map((mod) => {
+              const isExpanded = Boolean(expandedModules[mod.id]);
               return (
-                <li key={lesson.id}>
+                <section key={mod.id} className="module-group">
                   <button
                     type="button"
-                    aria-pressed={isSelected}
-                    className={`lesson-btn${isSelected ? " is-active" : ""}`}
-                    onClick={() => selectLesson(lesson)}
+                    className={`module-toggle${isExpanded ? " is-open" : ""}`}
+                    aria-expanded={isExpanded}
+                    onClick={() => toggleModuleDropdown(mod.id)}
                   >
-                    <span className="lesson-dot" aria-hidden="true" />
-                    <span className="lesson-btn-title">{lesson.title}</span>
+                    <span className="module-toggle-text">
+                      <span className="module-toggle-title">{mod.title}</span>
+                      <span className="module-toggle-count">
+                        {mod.items.length} {mod.items.length === 1 ? "item" : "items"}
+                      </span>
+                    </span>
+                    <svg
+                      className={`module-chevron${isExpanded ? " is-open" : ""}`}
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
                   </button>
-                  <ul className="assessment-list">
-                    {(lesson.assessments || []).map((item) => (
-                      <li key={item.name}>
-                        <span>
-                          <span className="tiny-dot" aria-hidden="true" />
-                          {item.name}
-                        </span>
-                        {item.score ? <span className="score">{item.score}</span> : null}
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+
+                  {isExpanded ? (
+                    <ul className="module-lesson-list">
+                      {mod.items.map((lesson) => {
+                        const isSelected = activeLesson === lesson.id;
+                        return (
+                          <li key={lesson.id}>
+                            <button
+                              type="button"
+                              aria-current={isSelected ? "page" : undefined}
+                              className={`module-lesson-btn${isSelected ? " is-active" : ""}`}
+                              onClick={() => selectLesson(lesson)}
+                            >
+                              <span className="module-lesson-dot" aria-hidden="true" />
+                              <span className="module-lesson-info">
+                                <span className="module-lesson-title">{lesson.title}</span>
+                                <span className="module-lesson-meta">
+                                  {lesson.subtitle || `Audio & Script · ${lesson.duration_label || "1:00"}`}
+                                </span>
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                </section>
               );
             })}
-          </ul>
+          </div>
 
           <p className="nav-label practice-label">Practice</p>
           <ul className="practice-list">
@@ -895,13 +785,22 @@ export default function WorkspacePage({ user, onSignOut }) {
               </button>
             ))}
             <div className="tab-actions">
+              {lessonViewerOpen ? (
+                <button
+                  type="button"
+                  className={`guide-toggle-btn${lessonExpanded ? " is-open" : ""}`}
+                  onClick={() => setLessonExpanded((prev) => !prev)}
+                >
+                  {lessonExpanded ? "Show Code Editor" : "Expand Lesson"}
+                </button>
+              ) : null}
               <button
                 type="button"
                 className={`guide-toggle-btn${lessonViewerOpen ? " is-open" : ""}`}
                 aria-expanded={lessonViewerOpen}
                 onClick={() => setLessonViewerOpen((prev) => !prev)}
               >
-                {lessonViewerOpen ? "Hide Lesson Guide" : "Lesson Guide"}
+                {lessonViewerOpen ? "Hide Lesson" : "Show Lesson"}
               </button>
               <button type="button" className="run-btn" onClick={runCode}>
                 Run
@@ -911,7 +810,7 @@ export default function WorkspacePage({ user, onSignOut }) {
 
           {lessonViewerOpen && currentLesson ? (
             <section
-              className="lesson-viewer"
+              className={`lesson-viewer${lessonExpanded ? " is-expanded" : ""}`}
               aria-label={`${currentLesson.title} guide`}
             >
               <div className="lesson-viewer-header">
@@ -920,16 +819,8 @@ export default function WorkspacePage({ user, onSignOut }) {
                     <h2>{currentLesson.title}</h2>
                     <span className="lesson-file-badge">{currentLesson.file}</span>
                   </div>
-                  <p className="lesson-summary">{currentLesson.summary}</p>
                 </div>
                 <div className="lesson-viewer-actions">
-                  <button
-                    type="button"
-                    className={`lesson-action-btn${isReadingLesson ? " is-active" : ""}`}
-                    onClick={toggleReadLesson}
-                  >
-                    {isReadingLesson ? "⏹ Stop Reading" : "🔊 Read Lesson Aloud"}
-                  </button>
                   <button
                     type="button"
                     className="lesson-action-btn secondary"
@@ -940,21 +831,28 @@ export default function WorkspacePage({ user, onSignOut }) {
                       )
                     }
                   >
-                    💬 Ask Vision to Teach Me
+                    Ask Vision to Teach Me
                   </button>
                 </div>
               </div>
+
+              <LessonAudioPlayer
+                lesson={currentLesson}
+                apiBase={API_BASE}
+                onBeforePlay={cancelSpeech}
+                onAnnounce={setAnnounce}
+              />
 
               <div className="lesson-subtabs" role="tablist" aria-label="Lesson sections">
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={lessonTab === "concept"}
+                  aria-selected={lessonTab === "script"}
                   aria-controls="lesson-tabpanel"
-                  className={`lesson-subtab${lessonTab === "concept" ? " is-active" : ""}`}
-                  onClick={() => setLessonTab("concept")}
+                  className={`lesson-subtab${lessonTab === "script" ? " is-active" : ""}`}
+                  onClick={() => setLessonTab("script")}
                 >
-                  Concept &amp; Objectives
+                  Lesson Script
                 </button>
                 <button
                   type="button"
@@ -974,23 +872,23 @@ export default function WorkspacePage({ user, onSignOut }) {
                   className={`lesson-subtab${lessonTab === "practice" ? " is-active" : ""}`}
                   onClick={() => setLessonTab("practice")}
                 >
-                  Practice Task &amp; Assessments
+                  Practice Task
                 </button>
               </div>
 
               <div id="lesson-tabpanel" role="tabpanel" className="lesson-tabpanel">
-                {lessonTab === "concept" && (
-                  <div className="lesson-concept-view">
-                    <p className="lesson-explanation">
-                      {currentLesson.concept_explanation}
-                    </p>
-                    {currentLesson.objectives?.length ? (
-                      <ul className="lesson-objectives">
-                        {currentLesson.objectives.map((goal) => (
-                          <li key={goal}>{goal}</li>
-                        ))}
-                      </ul>
-                    ) : null}
+                {lessonTab === "script" && (
+                  <div className="lesson-script-view">
+                    {(Array.isArray(currentLesson.script) && currentLesson.script.length > 0
+                      ? currentLesson.script
+                      : [currentLesson.concept_explanation]
+                    )
+                      .filter(Boolean)
+                      .map((paragraph, idx) => (
+                        <p key={idx} className="lesson-script-paragraph">
+                          {paragraph}
+                        </p>
+                      ))}
                   </div>
                 )}
 
@@ -1023,23 +921,37 @@ export default function WorkspacePage({ user, onSignOut }) {
                     <p className="practice-prompt-text">
                       <strong>Try this:</strong> {currentLesson.practice_prompt}
                     </p>
-                    <ul className="lesson-assessment-cards">
-                      {(currentLesson.assessments || []).map((a) => (
-                        <li key={a.name} className="assessment-card">
-                          <span>{a.name}</span>
-                          <span className={a.score ? "score" : "pending"}>
-                            {a.score || "Not attempted"}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                    {currentLesson.objectives?.length ? (
+                      <ul className="lesson-objectives">
+                        {currentLesson.objectives.map((goal) => (
+                          <li key={goal}>{goal}</li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                 )}
+              </div>
+
+              <div className="lesson-viewer-footer">
+                <span className="lesson-constant-note">
+                  {currentLesson.module_title}
+                </span>
+                {nextLesson ? (
+                  <button
+                    type="button"
+                    className="next-item-btn"
+                    onClick={() => selectLesson(nextLesson)}
+                  >
+                    Go to next item →
+                  </button>
+                ) : null}
               </div>
             </section>
           ) : null}
 
-          <div className="editor">
+          {!lessonExpanded || !lessonViewerOpen ? (
+            <>
+              <div className="editor">
             <div className="gutter" aria-hidden="true">
               {lines.map((_, index) => (
                 <div
@@ -1095,6 +1007,8 @@ export default function WorkspacePage({ user, onSignOut }) {
             </p>
             <pre className="output-body">{output.join("\n")}</pre>
           </div>
+            </>
+          ) : null}
         </section>
 
         <aside className="tutor" aria-label="AI Tutor">

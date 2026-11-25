@@ -61,9 +61,29 @@ function execLines(lines, startIndex, minIndent, vars, output) {
       break;
     }
 
-    const forMatch = trimmed.match(/^for\s+([A-Za-z_]\w*)\s+in\s+range\((.+)\):$/);
-    if (forMatch) {
-      const [, varName, rangeArgsRaw] = forMatch;
+    if (trimmed === "break") {
+      return "break";
+    }
+
+    if (trimmed === "continue") {
+      return "continue";
+    }
+
+    const ifMatch = trimmed.match(/^if\s+(.+):$/);
+    if (ifMatch) {
+      const [, condStr] = ifMatch;
+      const { block, nextIndex, blockIndent } = collectBlock(lines, i + 1, indent);
+      if (evalCondition(condStr, vars)) {
+        const signal = execLines(block, 0, blockIndent, vars, output);
+        if (signal) return signal;
+      }
+      i = nextIndex;
+      continue;
+    }
+
+    const forRangeMatch = trimmed.match(/^for\s+([A-Za-z_]\w*)\s+in\s+range\((.+)\):$/);
+    if (forRangeMatch) {
+      const [, varName, rangeArgsRaw] = forRangeMatch;
       const { block, nextIndex, blockIndent } = collectBlock(lines, i + 1, indent);
       const args = splitArgs(rangeArgsRaw).map((a) => Number(evalExpr(a, vars)));
       let start = 0;
@@ -86,8 +106,31 @@ function execLines(lines, startIndex, minIndent, vars, output) {
           break;
         }
         vars[varName] = n;
-        execLines(block, 0, blockIndent, vars, output);
+        const signal = execLines(block, 0, blockIndent, vars, output);
         guard += 1;
+        if (signal === "break") break;
+      }
+      i = nextIndex;
+      continue;
+    }
+
+    const forIterMatch = trimmed.match(/^for\s+([A-Za-z_]\w*)\s+in\s+(.+):$/);
+    if (forIterMatch) {
+      const [, varName, iterExpr] = forIterMatch;
+      const { block, nextIndex, blockIndent } = collectBlock(lines, i + 1, indent);
+      const iterable = evalExpr(iterExpr, vars);
+      if (Array.isArray(iterable) || typeof iterable === "string") {
+        let guard = 0;
+        for (const item of iterable) {
+          if (guard >= MAX_WHILE_ITERATIONS) {
+            output.push(`(stopped after ${MAX_WHILE_ITERATIONS} loop iterations)`);
+            break;
+          }
+          vars[varName] = item;
+          const signal = execLines(block, 0, blockIndent, vars, output);
+          guard += 1;
+          if (signal === "break") break;
+        }
       }
       i = nextIndex;
       continue;
@@ -103,8 +146,9 @@ function execLines(lines, startIndex, minIndent, vars, output) {
           output.push(`(stopped after ${MAX_WHILE_ITERATIONS} loop iterations)`);
           break;
         }
-        execLines(block, 0, blockIndent, vars, output);
+        const signal = execLines(block, 0, blockIndent, vars, output);
         iterations += 1;
+        if (signal === "break") break;
       }
       i = nextIndex;
       continue;
@@ -113,6 +157,8 @@ function execLines(lines, startIndex, minIndent, vars, output) {
     execStatement(trimmed, vars, output);
     i += 1;
   }
+
+  return null;
 }
 
 function execStatement(statement, vars, output) {
@@ -177,6 +223,11 @@ function splitArgs(raw) {
 
 function evalExpr(expr, vars) {
   const trimmed = expr.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    const inner = trimmed.slice(1, -1).trim();
+    if (!inner) return [];
+    return splitArgs(inner).map((item) => evalExpr(item, vars));
+  }
   if (
     (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
     (trimmed.startsWith("'") && trimmed.endsWith("'"))
